@@ -3,60 +3,62 @@ const mongoose = require('mongoose');
 const educationSchema = new mongoose.Schema({
     university: {
       type: String,
-      required: true
+      default: null,
     },
     degree: {
       type: String,
-      required: true
+      default: null,
     },
     degreeType: {
       type: String,
-      required: true
+      default: null,
     },
     specialization: {
       type: String,
-      required: true
+      default: null,
     },
     yearsOfStudyFrom: {
       type: Number,
-      required: true
+      default: null,
     },
     yearsOfStudyTo: {
       type: Number,
-      required: true
+      default: null,
     },
     educationPhoto: {
-      type: Buffer
+      type: Buffer,
+      default: null,
     }
   });
 
 const certificationSchema = new mongoose.Schema({
     subject: {
       type: String,
-      required: true
+      default: null,
     },
     certificate: {
       type: String,
-      required: true
+      default: null,
     },
     description: {
       type: String,
-      required: true
+      default: null,
     },
     issuedBy: {
       type: String,
-      required: true
+      default: null,
     },
     yearsOfStudyFrom: {
       type: Number,
-      required: true
+      default: null,
     },
     yearsOfStudyTo: {
       type: Number,
-      required: true
+      default: null,
     },
     certificationPhoto: {
-      type: Buffer // Store certification image data as a buffer
+      type: Buffer, // Store certification image data as a buffer
+      default: null,
     }
   });
 
@@ -64,22 +66,22 @@ const certificationSchema = new mongoose.Schema({
 const availabilitySlotSchema = new mongoose.Schema({
     from: {
       type: String,
-      required: true
+      default: null,
     },
     to: {
       type: String,
-      required: true
+      default: null,
     }
   });
 
   const availabilityDaySchema = new mongoose.Schema({
     day: {
       type: String,
-      required: true
+      default: null,
     },
     allDay: {
       type: Boolean,
-      default: false
+      default: null,
     },
     slots: [availabilitySlotSchema]
   });
@@ -87,51 +89,53 @@ const availabilitySlotSchema = new mongoose.Schema({
 const teacherSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  firstName: {type: String, required: true},
-  lastName: {type: String, required: true},
-  countryOrigin: {type: String, required: true},
-  LanguageSpoken: {type: [String], required: true},
+  isVerified: { type: Boolean, default: false },
+  verificationToken: {type: String, required: true},
+  firstName: {type: String,  default: null,},
+  lastName: {type: String,  default: null,},
+  countryOrigin: {type: String, default: null,},
+  LanguageSpoken: {type: [String],  default: null,},
   levelsTaught: {
     type: String,
-    required: true
+    default: null,
   },
   subjectsTaught: {
     type: String,
-    required: true
+    default: null,
   },
   phoneNumber: {
     type: String,
-    required: true
+    default: null,
   },
   isGreaterThan18: {
     type: Boolean,
-    required: true
+    default: null,
   },
-  isVerified: { type: Boolean, default: false },
   profilePhoto: {
-    type: Buffer 
+    type: Buffer ,
+    default: null,
   },
   profileDescription: {
     introduceYourself: {
       type: String,
-      required: true
+      default: null,
     },
     teachingExperience: {
       type: String,
-      required: true
+      default: null,
     },
     motivateStudents: {
       type: String,
-      required: true
+      default: null,
     },
     catchyHeadline: {
         type: String,
-        required: true
+        default: null,
     },
   },
   video: {
     link: {
-      type: String
+      type: String,
     },
     thumbnail: {
       type: Buffer 
@@ -142,16 +146,16 @@ const teacherSchema = new mongoose.Schema({
   },
   hourlyPriceUSD: {
     type: Number,
-    required: true
+    default: null,
   },
   noTeachingCertification: {
     type: Boolean,
-    required: true
+    default: null,
   },
   certifications: [certificationSchema],
   noEducationCertification: {
     type: Boolean,
-    required: true
+    default: null,
   },
   educations: [educationSchema],
   availability: [availabilityDaySchema],
