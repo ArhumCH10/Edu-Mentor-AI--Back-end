@@ -52,7 +52,8 @@ exports.verifyEmail = async (req, res, next) => {
       return res.status(404).json({ error: 'Invalid verification token' });
     }
     
-    return res.redirect('http://localhost:5174/');
+    const redirectUrl = 'http://localhost:5173/';
+    res.redirect(`${redirectUrl}?isVerified=true`);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal server error' });

@@ -1,7 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const loginRoutes = require('./routes/loginRoutes');
 const userRoutes = require('./routes/signUpRoutes');
+const teacherData = require('./routes/teacherRoutes');
 const URL = 'mongodb+srv://arhumnaveed092:Ayeshairshad911@cluster0.trsuqsj.mongodb.net/shop?retryWrites=true&w=majority';
 
 const app = express();
@@ -17,6 +19,8 @@ db.once('open', () => {
 });
 
 app.use('/teacher', userRoutes);
+app.use(loginRoutes);
+app.use(teacherData);
 
 mongoose.connect(URL).then(result => {
     app.listen(8080);

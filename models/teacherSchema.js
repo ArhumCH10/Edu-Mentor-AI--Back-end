@@ -95,8 +95,9 @@ const teacherSchema = new mongoose.Schema({
   lastName: {type: String,  default: null,},
   countryOrigin: {type: String, default: null,},
   LanguageSpoken: {type: [String],  default: null,},
+  isRegistered: { type: Boolean, default: false },
   levelsTaught: {
-    type: String,
+    type: [String], 
     default: null,
   },
   subjectsTaught: {
