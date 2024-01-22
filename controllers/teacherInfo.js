@@ -113,35 +113,80 @@ exports.deleteLanguageAndLevel = async (req, res, next) => {
   };  
 
   exports.Photo = async (req, res, next) => {
-    try {
-        const token = req.header("Authorization").split(" ")[1];
-        const decodedToken = jwt.verify(token, "teacherSecretKey");
-        const userId = decodedToken.userId;
-        const formData = req.body.fileStore;
+      try {
+          const token = req.header("Authorization").split(" ")[1];
+          const decodedToken = jwt.verify(token, "teacherSecretKey");
+          const userId = decodedToken.userId;
+  
+          const user = await teacherDB.findById(userId);
+  
+          if (!user) {
+              return res.status(404).json({ message: "User not found" });
+          }
 
-        const user = await teacherDB.findById(userId);
 
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+          const verificationToken = user.verificationToken;
 
-        console.log(formData);
+  
+          console.log("in Photo function req.file: ", req.file);
+  
+          if (!req.file || !req.file.buffer) {
+              return res.status(400).json({ message: "Invalid or missing file in the request" });
+          }
+  
+          const photoBuffer = req.file.buffer;
+          console.log("in Photo function photoBuffer : ", photoBuffer);
 
-        if (!req.file || !req.file.buffer) {
-            return res.status(400).json({ message: "Invalid or missing file in the request" });
-        }
+          const updatedUser = await teacherDB.findByIdAndUpdate(
+            userId,
+            {
+                profilePhoto: photoBuffer,
+                verificationToken: verificationToken,
+            },
+            { new: true }
+        );
+          res.status(200).json({
+              message: "Profile photo updated successfully",
+              updatedTeacher: updatedUser,
+          });
+      } catch (error) {
+          console.error("Error updating profile photo:", error);
+          return res.status(500).json({ message: "An unexpected error occurred" });
+      }
+  };
+  
 
-        const photoBuffer = req.file.buffer;
 
-        user.profilePhoto = photoBuffer;
-        await user.save();
+//   exports.Photo = async (req, res, next) => {
+//     try {
+//         const token = req.header("Authorization").split(" ")[1];
+//         const decodedToken = jwt.verify(token, "teacherSecretKey");
+//         const userId = decodedToken.userId;
+//         const formData = req.body.fileStore;
 
-        res.status(200).json({
-            message: "Profile photo updated successfully",
-            updatedTeacher: user,
-        });
-    } catch (error) {
-        console.error("Error updating profile photo:", error);
-        return res.status(500).json({ message: "An unexpected error occurred" });
-    }
-};
+//         const user = await teacherDB.findById(userId);
+
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         console.log("in Photo function formdata: ",formData);
+
+//         if (!req.file || !req.file.buffer) {
+//             return res.status(400).json({ message: "Invalid or missing file in the request" });
+//         }
+
+//         const photoBuffer = req.file.buffer;
+
+//         user.profilePhoto = photoBuffer;
+//         await user.save();
+
+//         res.status(200).json({
+//             message: "Profile photo updated successfully",
+//             updatedTeacher: user,
+//         });
+//     } catch (error) {
+//         console.error("Error updating profile photo:", error);
+//         return res.status(500).json({ message: "An unexpected error occurred" });
+//     }
+// };

@@ -10,3 +10,4 @@ router.delete('/delete-language-and-level/:index', teacherInfo.deleteLanguageAnd
 router.post('/photo', upload.single('photo'), teacherInfo.Photo);
 
 module.exports = router;
+
