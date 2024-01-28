@@ -4,7 +4,7 @@ const cors = require('cors');
 const loginRoutes = require('./routes/loginRoutes');
 const userRoutes = require('./routes/signUpRoutes');
 const teacherData = require('./routes/teacherRoutes');
-const URL = 'mongodb+srv://ghous:12345@cluster0.xaycdod.mongodb.net/';
+const URL = 'mongodb+srv://arhumnaveed092:Ayeshairshad911@cluster0.trsuqsj.mongodb.net/';
 
 const app = express();
 
