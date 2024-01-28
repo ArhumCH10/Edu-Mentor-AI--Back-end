@@ -5,8 +5,7 @@ const loginRoutes = require("./routes/loginRoutes");
 const userRoutes = require("./routes/signUpRoutes");
 const teacherData = require("./routes/teacherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const URL =
-  "mongodb+srv://supremebilal78:t5OxJKSK26h9q9YU@test-db.v6p1fbj.mongodb.net/";
+const URL = "mongodb+srv://ghous:12345@cluster0.xaycdod.mongodb.net/";
 
 const app = express();
 
