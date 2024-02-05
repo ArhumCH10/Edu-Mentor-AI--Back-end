@@ -114,7 +114,7 @@ const teacherSchema = new mongoose.Schema({
     default: null,
   },
   profilePhoto: {
-    type: Buffer ,
+    type: String ,
     default: null,
   },
   profileDescription: {
@@ -137,10 +137,10 @@ const teacherSchema = new mongoose.Schema({
   },
   video: {
     thumbnail: {
-      type: Buffer 
+      type: String 
     },
     data: {
-        type: Buffer // Store video data as a buffer
+        type: String 
     },
   },
   hourlyPriceUSD: {

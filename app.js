@@ -5,7 +5,8 @@ const loginRoutes = require("./routes/loginRoutes");
 const userRoutes = require("./routes/signUpRoutes");
 const teacherData = require("./routes/teacherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
-const URL = "mongodb+srv://arhumnaveed092:Ayeshairshad911@cluster0.trsuqsj.mongodb.net/";
+const path = require('path');
+const URL = "mongodb+srv://ghous:12345@cluster0.xaycdod.mongodb.net/";
 
 const app = express();
 
@@ -23,7 +24,7 @@ app.use("/teacher", userRoutes);
 app.use(loginRoutes);
 app.use(teacherData);
 app.use("/admin", adminRoutes);
-
+app.use("/uploads",express.static(path.join(__dirname,"uploads")));
 mongoose
   .connect(URL)
   .then((result) => {

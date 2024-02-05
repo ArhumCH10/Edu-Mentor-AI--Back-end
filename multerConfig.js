@@ -11,19 +11,19 @@ const storage = multer.diskStorage({
   });
 const upload = multer({ storage: storage });
 
-const storageVideo = multer.diskStorage({
-    destination: function (req, file, cb) {
-      cb(null, "./videos");
-    },
-    filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      cb(null, uniqueSuffix + "-" + file.originalname);
-    },
-  });
-const videoUpload = multer({ storage: storageVideo });
+// const storageVideo = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//       cb(null, "./videos");
+//     },
+//     filename: function (req, file, cb) {
+//       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+//       cb(null, uniqueSuffix + "-" + file.originalname);
+//     },
+//   });
+// const videoUpload = multer({ storage: storageVideo });
 
 module.exports = upload;
-module.exports = videoUpload;
+//module.exports = videoUpload;
 
 // const multer = require('multer');
 

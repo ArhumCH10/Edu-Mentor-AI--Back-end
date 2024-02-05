@@ -18,7 +18,7 @@ router.post('/description', teacherInfo.Description);
 router.post('/video', upload.fields([
     { name: 'data', maxCount: 1 },
     { name: 'thumbnail', maxCount: 1 }
-  ]), teacherInfo.Video);  
+]), teacherInfo.Video);
 //router.post('/video', upload.single('data'), teacherInfo.Video);
 router.post('/availability', teacherInfo.Availability);
 router.post('/pricing', teacherInfo.Pricing);
@@ -32,17 +32,13 @@ router.get('/photo/:userId', async (req, res) => {
             return res.status(404).send('No photo found');
         }
 
-        // Construct the full file path
         const filePath = path.join(__dirname, '..', user.profilePhoto);
 
-        // Check if the file exists
         if (fs.existsSync(filePath)) {
-            // Determine the content type from the file extension
             const ext = path.extname(user.profilePhoto);
             let contentType = 'image/jpg'; // Default to jpeg
             if (ext === '.png') contentType = 'image/png';
 
-            // Set appropriate Content-Type header and send the file
             res.setHeader('Content-Type', contentType);
             res.sendFile(filePath);
         } else {
@@ -54,6 +50,41 @@ router.get('/photo/:userId', async (req, res) => {
     }
 });
 
+router.get('/video/:userId', async (req, res) => {
+    try {
+        const userId = req.params.userId;
+        const user = await teacherDB.findById(userId);
+
+        if (!user || !user.video || user.video.length === 0) {
+            return res.status(404).json({ message: 'No video found' });
+        }
+        const video = user.video.data;
+        const thumb = user.video.thumbnail;
+        const videoString = video.join(', ');
+        const thumbString = thumb ? thumb.join(', ') : null;
+        console.log('video: ',videoString);
+        console.log('Thumb',thumbString);
+        // Concatenate directory path with video and thumbnail paths
+        // const videoData = {
+        //     data: path.join(__dirname, '..', videoString), // Assuming __dirname is the directory of this file
+        //     thumbnail: thumbString ? path.join(__dirname, '..', thumbString) : null,
+        // };
+        const videoData = {
+            data: videoString,
+            thumbnail: thumbString,
+        };
+        console.log(user.video);
+     
+
+        res.status(200).json({
+            message: 'Video data retrieved successfully',
+            videoData: videoData,
+        });
+    } catch (error) {
+        console.error('Error retrieving video data:', error);
+        res.status(500).json({ message: 'An unexpected error occurred' });
+    }
+});
 
 module.exports = router;
 

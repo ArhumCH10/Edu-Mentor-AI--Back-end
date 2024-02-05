@@ -112,7 +112,47 @@ exports.deleteLanguageAndLevel = async (req, res, next) => {
     }
   };  
 
-  exports.Photo = async (req, res, next) => {
+
+
+//   exports.Photo = async (req, res, next) => {
+//     try {
+//         const token = req.header("Authorization").split(" ")[1];
+//         const decodedToken = jwt.verify(token, "teacherSecretKey");
+//         const userId = decodedToken.userId;
+
+//         const user = await teacherDB.findById(userId);
+
+//         if (!user) {
+//             return res.status(404).json({ message: "User not found" });
+//         }
+
+//         if (!req.file) {
+//             return res.status(400).json({ message: "Invalid or missing file in the request" });
+//         }
+
+
+//         // Here, instead of saving a buffer, you save the file path
+//         const filePath = req.file.path;
+
+//         const updatedUser = await teacherDB.findByIdAndUpdate(
+//             userId,
+//             {
+//                 profilePhoto: filePath, // Save the file path
+//             },
+//             { new: true }
+//         );
+
+//         res.status(200).json({
+//             message: "Profile photo updated successfully",
+//             updatedTeacher: updatedUser,
+//         });
+//     } catch (error) {
+//         console.error("Error updating profile photo:", error);
+//         return res.status(500).json({ message: "An unexpected error occurred" });
+//     }
+// };
+
+exports.Photo = async (req, res) => {
     try {
         const token = req.header("Authorization").split(" ")[1];
         const decodedToken = jwt.verify(token, "teacherSecretKey");
@@ -128,14 +168,12 @@ exports.deleteLanguageAndLevel = async (req, res, next) => {
             return res.status(400).json({ message: "Invalid or missing file in the request" });
         }
 
-
-        // Here, instead of saving a buffer, you save the file path
         const filePath = req.file.path;
 
         const updatedUser = await teacherDB.findByIdAndUpdate(
             userId,
             {
-                profilePhoto: filePath, // Save the file path
+                profilePhoto: filePath,
             },
             { new: true }
         );
@@ -146,10 +184,51 @@ exports.deleteLanguageAndLevel = async (req, res, next) => {
         });
     } catch (error) {
         console.error("Error updating profile photo:", error);
-        return res.status(500).json({ message: "An unexpected error occurred" });
+        res.status(500).json({ message: "An unexpected error occurred" });
     }
 };
 
+// exports.Certificate = async (req, res, next) => {
+//     try {
+//         // Authentication check
+//         const token = req.header("Authorization").split(" ")[1];
+//         const decodedToken = jwt.verify(token, "teacherSecretKey");
+//         const userId = decodedToken.userId;
+
+//         // Extract certification details from the request
+//         const { subject, certificate, description, issuedBy, yearsOfStudyFrom } = req.body;
+        
+//         // Get the uploaded file's path for certificationPhoto
+//         const certificationPhoto = req.file ? req.file.path : null;
+
+//         // Find the teacher and update their certifications array
+//         const updatedTeacher = await teacherDB.findByIdAndUpdate(
+//             userId,
+//             {
+//                 $push: {
+//                     certifications: {
+//                         subject,
+//                         certificate,
+//                         description,
+//                         issuedBy,
+//                         yearsOfStudyFrom,
+//                         certificationPhoto
+//                     }
+//                 }
+//             },
+//             { new: true }
+//         );
+
+//         // Respond with the updated teacher information
+//         res.status(200).json({
+//             message: "Certification added/updated successfully",
+//             updatedTeacher,
+//         });
+//     } catch (error) {
+//         console.error("Error updating certification data:", error);
+//         return res.status(500).json({ message: "An unexpected error occurred" });
+//     }
+// };
 exports.Certificate = async (req, res, next) => {
     try {
         // Authentication check
@@ -163,25 +242,46 @@ exports.Certificate = async (req, res, next) => {
         // Get the uploaded file's path for certificationPhoto
         const certificationPhoto = req.file ? req.file.path : null;
 
-        // Find the teacher and update their certifications array
-        const updatedTeacher = await teacherDB.findByIdAndUpdate(
-            userId,
+        // Check if the teacher already has a certification with the same subject and certificate
+        const existingCertification = await teacherDB.findOneAndUpdate(
             {
-                $push: {
-                    certifications: {
-                        subject,
-                        certificate,
-                        description,
-                        issuedBy,
-                        yearsOfStudyFrom,
-                        certificationPhoto
-                    }
-                }
+                _id: userId,
+                "certifications.subject": subject,
+                "certifications.certificate": certificate,
+            },
+            {
+                $set: {
+                    "certifications.$.description": description,
+                    "certifications.$.issuedBy": issuedBy,
+                    "certifications.$.yearsOfStudyFrom": yearsOfStudyFrom,
+                    "certifications.$.certificationPhoto": certificationPhoto,
+                },
             },
             { new: true }
         );
 
+        if (!existingCertification) {
+            // If no existing entry, push a new one
+            await teacherDB.findByIdAndUpdate(
+                userId,
+                {
+                    $push: {
+                        certifications: {
+                            subject,
+                            certificate,
+                            description,
+                            issuedBy,
+                            yearsOfStudyFrom,
+                            certificationPhoto,
+                        },
+                    },
+                },
+                { new: true }
+            );
+        }
+
         // Respond with the updated teacher information
+        const updatedTeacher = await teacherDB.findById(userId);
         res.status(200).json({
             message: "Certification added/updated successfully",
             updatedTeacher,
@@ -199,40 +299,102 @@ exports.Education = async (req, res, next) => {
         const decodedToken = jwt.verify(token, "teacherSecretKey");
         const userId = decodedToken.userId;
 
-        // Extract certification details from the request
-        const {  university, degree, degreeType, specialization, yearsOfStudyFrom } = req.body;
-        
-        // Get the uploaded file's path for certificationPhoto
-        const  educationPhoto = req.file ? req.file.path : null;
+        // Extract education details from the request
+        const { university, degree, degreeType, specialization, yearsOfStudyFrom } = req.body;
 
-        // Find the teacher and update their certifications array
-        const updatedTeacher = await teacherDB.findByIdAndUpdate(
-            userId,
+        // Get the uploaded file's path for educationPhoto
+        const educationPhoto = req.file ? req.file.path : null;
+
+        // Check if the teacher already has an education entry with the same university and degree
+        const existingEducation = await teacherDB.findOneAndUpdate(
             {
-                $push: {
-                    educations: {
-                        university,
-                        degree,
-                        degreeType,
-                        specialization,
-                        yearsOfStudyFrom,
-                        educationPhoto
-                    }
-                }
+                _id: userId,
+                "educations.university": university,
+                "educations.degree": degree,
+            },
+            {
+                $set: {
+                    "educations.$.degreeType": degreeType,
+                    "educations.$.specialization": specialization,
+                    "educations.$.yearsOfStudyFrom": yearsOfStudyFrom,
+                    "educations.$.educationPhoto": educationPhoto,
+                },
             },
             { new: true }
         );
 
+        if (!existingEducation) {
+            // If no existing entry, push a new one
+            await teacherDB.findByIdAndUpdate(
+                userId,
+                {
+                    $push: {
+                        educations: {
+                            university,
+                            degree,
+                            degreeType,
+                            specialization,
+                            yearsOfStudyFrom,
+                            educationPhoto,
+                        },
+                    },
+                },
+                { new: true }
+            );
+        }
+
         // Respond with the updated teacher information
+        const updatedTeacher = await teacherDB.findById(userId);
         res.status(200).json({
-            message: "Degree added/updated successfully",
+            message: "Education added/updated successfully",
             updatedTeacher,
         });
     } catch (error) {
-        console.error("Error updating Degree data:", error);
+        console.error("Error updating education data:", error);
         return res.status(500).json({ message: "An unexpected error occurred" });
     }
 };
+// exports.Education = async (req, res, next) => {
+//     try {
+//         // Authentication check
+//         const token = req.header("Authorization").split(" ")[1];
+//         const decodedToken = jwt.verify(token, "teacherSecretKey");
+//         const userId = decodedToken.userId;
+
+//         // Extract certification details from the request
+//         const {  university, degree, degreeType, specialization, yearsOfStudyFrom } = req.body;
+        
+//         // Get the uploaded file's path for certificationPhoto
+//         const  educationPhoto = req.file ? req.file.path : null;
+
+//         // Find the teacher and update their certifications array
+//         const updatedTeacher = await teacherDB.findByIdAndUpdate(
+//             userId,
+//             {
+//                 $push: {
+//                     educations: {
+//                         university,
+//                         degree,
+//                         degreeType,
+//                         specialization,
+//                         yearsOfStudyFrom,
+//                         educationPhoto
+//                     }
+//                 }
+//             },
+//             { new: true }
+//         );
+
+//         // Respond with the updated teacher information
+//         res.status(200).json({
+//             message: "Degree added/updated successfully",
+//             updatedTeacher,
+//         });
+//     } catch (error) {
+//         console.error("Error updating Degree data:", error);
+//         return res.status(500).json({ message: "An unexpected error occurred" });
+//     }
+// };
 
 exports.Description = async (req, res, next) => {
     try {
