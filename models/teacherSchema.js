@@ -32,65 +32,64 @@ const educationSchema = new mongoose.Schema({
 });
 
 const certificationSchema = new mongoose.Schema({
-    subject: {
-      type: String,
-      default: null,
-    },
-    certificate: {
-      type: String,
-      default: null,
-    },
-    description: {
-      type: String,
-      default: null,
-    },
-    issuedBy: {
-      type: String,
-      default: null,
-    },
-    yearsOfStudyFrom: {
-      type: Number,
-      default: null,
-    },
-    yearsOfStudyTo: {
-      type: Number,
-      default: null,
-    },
-    certificationPhoto: {
-      type: Buffer, // Store certification image data as a buffer
-      default: null,
-    }
-  });
+  subject: {
+    type: String,
+    default: null,
+  },
+  certificate: {
+    type: String,
+    default: null,
+  },
+  description: {
+    type: String,
+    default: null,
+  },
+  issuedBy: {
+    type: String,
+    default: null,
+  },
+  yearsOfStudyFrom: {
+    type: Number,
+    default: null,
+  },
+  yearsOfStudyTo: {
+    type: Number,
+    default: null,
+  },
+  certificationPhoto: {
+    type: Buffer, // Store certification image data as a buffer
+    default: null,
+  },
+});
 
-  
 const availabilitySlotSchema = new mongoose.Schema({
-    from: {
-      type: String,
-      default: null,
-    },
-    to: {
-      type: String,
-      default: null,
-    }
-  });
+  from: {
+    type: String,
+    default: null,
+  },
+  to: {
+    type: String,
+    default: null,
+  },
+});
 
-  const availabilityDaySchema = new mongoose.Schema({
-    day: {
-      type: String,
-      default: null,
-    },
-    allDay: {
-      type: Boolean,
-      default: null,
-    },
-    slots: [availabilitySlotSchema]
-  });
+const availabilityDaySchema = new mongoose.Schema({
+  day: {
+    type: String,
+    default: null,
+  },
+  allDay: {
+    type: Boolean,
+    default: null,
+  },
+  slots: [availabilitySlotSchema],
+});
 
 const teacherSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   isVerified: { type: Boolean, default: false },
-  verificationToken: { type: String, required: true },
+  verificationToken: { type: String, required: false },
   firstName: { type: String, default: null },
   lastName: { type: String, default: null },
   countryOrigin: { type: String, default: null },
@@ -114,7 +113,7 @@ const teacherSchema = new mongoose.Schema({
     default: null,
   },
   profilePhoto: {
-    type: String ,
+    type: String,
     default: null,
   },
   profileDescription: {
@@ -137,10 +136,10 @@ const teacherSchema = new mongoose.Schema({
   },
   video: {
     thumbnail: {
-      type: String 
+      type: String,
     },
     data: {
-        type: String 
+      type: String,
     },
   },
   hourlyPriceUSD: {
@@ -157,14 +156,18 @@ const teacherSchema = new mongoose.Schema({
     default: null,
   },
   educations: [educationSchema],
-  availability: [{
-    day: String,
-    timezone: String,
-    slots: [{
-        from: String,
-        to: String,
-    }],
-}],
+  availability: [
+    {
+      day: String,
+      timezone: String,
+      slots: [
+        {
+          from: String,
+          to: String,
+        },
+      ],
+    },
+  ],
 });
 
 const Teacher = mongoose.model("Teacher", teacherSchema);

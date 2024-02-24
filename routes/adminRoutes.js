@@ -27,12 +27,12 @@ router.post("/verify-teacher/:id", async (req, res) => {
     }
 
     // Update the isVerified property to true
-    teacher.isVerified = true;
+    teacher.isRegistered = true;
 
     // Save the updated teacher
     await teacher.save();
 
-    console.log("teacher verified");
+    console.log(teacher);
     return res.json({ message: "Teacher verified successfully" });
   } catch (error) {
     console.error("Error verifying teacher:", error);
