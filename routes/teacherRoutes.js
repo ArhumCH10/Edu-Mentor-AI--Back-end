@@ -86,5 +86,22 @@ router.get('/video/:userId', async (req, res) => {
     }
 });
 
+router.get('/totalTutor/:subject', async (req, res) => {
+    const { subject } = req.params;
+
+  try {
+    console.log('subject:', subject);
+    const totalTutorCount = await teacherDB.countDocuments({ subjectsTaught: subject });
+    console.log('totalTutorCount:', totalTutorCount);
+    res.status(200).json({ 
+        message: 'Total Tutor related subject retrieved successfully',
+        totalTutorCount: totalTutorCount 
+    });
+  } catch (error) {
+    console.error('Error fetching total tutor count:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+});
 module.exports = router;
 
