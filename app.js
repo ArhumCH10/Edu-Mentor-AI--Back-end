@@ -5,11 +5,13 @@ const loginRoutes = require("./routes/loginRoutes");
 const userRoutes = require("./routes/signUpRoutes");
 const teacherData = require("./routes/teacherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const studentRoutes = require("./routes/studentRoutes");
 const path = require("path");
 const URL =
-  "mongodb+srv://ghous:12345@cluster0.xaycdod.mongodb.net/";
+  "mongodb+srv://supremebilal78:t5OxJKSK26h9q9YU@test-db.v6p1fbj.mongodb.net/";
 
 const app = express();
+
 
 app.use(express.json());
 
@@ -22,6 +24,7 @@ db.once("open", () => {
 });
 
 app.use("/teacher", userRoutes);
+app.use("/student",studentRoutes);
 app.use(loginRoutes);
 app.use(teacherData);
 app.use("/admin", adminRoutes);
