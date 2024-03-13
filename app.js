@@ -12,7 +12,6 @@ const URL =
 
 const app = express();
 
-
 app.use(express.json());
 
 app.use(cors());
@@ -24,7 +23,7 @@ db.once("open", () => {
 });
 
 app.use("/teacher", userRoutes);
-app.use("/student",studentRoutes);
+app.use("/student", studentRoutes);
 app.use(loginRoutes);
 app.use(teacherData);
 app.use("/admin", adminRoutes);

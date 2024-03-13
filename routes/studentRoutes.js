@@ -9,7 +9,7 @@ const secretKey = "studentSecretKey";
 
 // Import your Student model
 const Student = require("../models/studentSchema");
-
+const TeacherDB = require("../models/teacherSchema");
 // Create a Nodemailer transporter
 
 const transporter = nodemailer.createTransport({
@@ -41,7 +41,15 @@ router.post("/signup", async (req, res) => {
     // Check if the user already exists
     const existingUser = await Student.findOne({ email: email });
     if (existingUser) {
-      return res.status(400).json({ error: "User already registered" });
+      return res.status(409).json({ error: "User already registered" });
+    }
+
+    const TeacherexistingUser = await TeacherDB.findOne({ email: email });
+    if (TeacherexistingUser) {
+      console.log("This Email is already registered as Teacher ");
+      return res
+        .status(400)
+        .json({ error: "This Email is already registered as Teacher " });
     }
 
     // Create a new user with the provided details
@@ -84,7 +92,6 @@ router.post("/signup", async (req, res) => {
     res.status(500).json({ error: "Error creating user and sending email" });
   }
 });
-
 router.post("/verify", async (req, res) => {
   const { concatenatedValue, email } = req.body;
   console.log(concatenatedValue, email);
@@ -103,7 +110,7 @@ router.post("/verify", async (req, res) => {
     user.isVerified = true;
     await user.save();
 
-    // If verification code is correct, return success response
+    // If verification code is correct, return success response with user data
     return res
       .status(200)
       .json({ message: "Verification successful", user: user });
@@ -112,9 +119,10 @@ router.post("/verify", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-
+  console.log("email: ", email);
   try {
     // Find the student by email
     const student = await Student.findOne({ email });
@@ -142,8 +150,7 @@ router.post("/login", async (req, res) => {
     const token = jwt.sign({ id: student._id }, secretKey, {
       expiresIn: "1h", // Token expires in 1 hour
     });
-
-    res.status(200).json({ token, isVerified: true });
+    res.status(200).json({ token, user: student }); // Include the user object in the response
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error" });
