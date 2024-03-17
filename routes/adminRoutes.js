@@ -2,11 +2,25 @@ const express = require("express");
 const router = express.Router();
 const { body } = require("express-validator");
 const Teacher = require("../models/teacherSchema");
+const Student=require("../models/studentSchema")
 router.get("/get-all-users", async (req, res) => {
   console.log("sending users");
   try {
     // Fetch all users from the database
     const users = await Teacher.find();
+    res.json(users);
+    console.log(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.get("/get-all-students", async (req, res) => {
+  console.log("sending students");
+  try {
+    // Fetch all users from the database
+    const users = await Student.find();
     res.json(users);
     console.log(users);
   } catch (error) {
