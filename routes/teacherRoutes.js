@@ -105,6 +105,30 @@ router.get('/totalTutor/:subject', async (req, res) => {
 
 });
 
+router.get('/searchTutorByEmail', async (req, res) => {
+    try {
+        const { email } = req.query;
+
+        console.log("data in query", email);
+        const query = {};
+       
+        query.registrationCompleted = true;
+        query.isVerified = true;
+        query.isRegistered = true;
+        if (email) {
+            query.email = email;
+        }
+        console.log("query", query);
+
+        const tutors = await teacherDB.find(query).select('-password -isVerified -verificationToken -isRegistered -registrationCompleted -isGreaterThan18');
+        console.log("tutors", tutors);
+        res.json(tutors);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 router.get('/searchTutors', async (req, res) => {
     try {
         const { subject, Country, Days, Times, minP, maxP } = req.query;
@@ -188,5 +212,6 @@ router.get('/tutorProfile/', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 module.exports = router;
 
