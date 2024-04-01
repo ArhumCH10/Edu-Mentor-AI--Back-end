@@ -122,7 +122,7 @@ router.post("/verify", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  console.log("email: ", email);
+  
   try {
     // Find the student by email
     const student = await Student.findOne({ email });

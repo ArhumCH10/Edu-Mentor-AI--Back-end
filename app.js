@@ -6,9 +6,12 @@ const userRoutes = require("./routes/signUpRoutes");
 const teacherData = require("./routes/teacherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const uploadPhoto = require('./routes/uploadPhoto');
+const studentData = require('./routes/studentData');
+const studentProfile = require('./routes/studentProfile');
 const path = require("path");
 const URL =
-  "mongodb+srv://supremebilal78:t5OxJKSK26h9q9YU@test-db.v6p1fbj.mongodb.net/";
+  "mongodb+srv://Real_Estate:estate12345@cluster0.stlji.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 
 const app = express();
 
@@ -24,8 +27,11 @@ db.once("open", () => {
 
 app.use("/teacher", userRoutes);
 app.use("/student", studentRoutes);
+app.use("/student", studentData);
+app.use("/student", studentProfile);
 app.use(loginRoutes);
 app.use(teacherData);
+app.use(uploadPhoto);
 app.use("/admin", adminRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 mongoose

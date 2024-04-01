@@ -169,6 +169,7 @@ exports.Photo = async (req, res) => {
         }
 
         const filePath = req.file.path;
+        console.log("file: ", filePath);
 
         const updatedUser = await teacherDB.findByIdAndUpdate(
             userId,

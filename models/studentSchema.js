@@ -31,11 +31,21 @@ const studentSchema = new mongoose.Schema({
   education: {
     type: String,
   },
-  languages: {
+  education1: {
+    type: String,
+  },
+  language: {
+    type: String,
+  },
+  language1: {
     type: String,
   },
   country: {
     type: String,
+  },
+  profilePhoto: {
+    type: String,
+    default: null,
   },
   totalLessons: {
     type: String,
