@@ -33,10 +33,6 @@ router.post("/signup", async (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  console.log("Name:", name);
-  console.log("Email:", email);
-  console.log("Password:", password);
-
   try {
     // Check if the user already exists
     const existingUser = await Student.findOne({ email: email });
@@ -50,6 +46,22 @@ router.post("/signup", async (req, res) => {
       return res
         .status(400)
         .json({ error: "This Email is already registered as Teacher " });
+    }
+
+    const minLengthRegex = /^.{8,}$/;
+    const capitalLetterRegex = /[A-Z]/;
+    const specialCharacterPattern = "[!@#$%^&*()_+{}\\[\\]:;<>,.?~\\-=|\\\\/]";
+    const specialCharacterRegex = new RegExp(specialCharacterPattern);
+  
+    if (
+      !minLengthRegex.test(password) ||
+      !capitalLetterRegex.test(password) ||
+      !specialCharacterRegex.test(password)
+    ) {
+      return res.status(401).json({
+        error:
+          "Password must be at least 8 characters long and contain at least one capital letter and one special character.",
+      });
     }
 
     // Create a new user with the provided details
@@ -94,7 +106,8 @@ router.post("/signup", async (req, res) => {
 });
 router.post("/verify", async (req, res) => {
   const { concatenatedValue, email } = req.body;
-  console.log(concatenatedValue, email);
+  console.log("concatenated value is: ",concatenatedValue);
+  console.log("email is: ", email);
   try {
     // Find the user by email
     const user = await Student.findOne({ email: email });
