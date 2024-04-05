@@ -75,7 +75,6 @@ router.post("/signup", async (req, res) => {
     const verificationCode = generateVerificationCode();
     newUser.verificationCode = verificationCode;
 
-    // Save the new user to the database
     await newUser.save();
 
     // Send the verification email
@@ -123,10 +122,12 @@ router.post("/verify", async (req, res) => {
     user.isVerified = true;
     await user.save();
 
-    // If verification code is correct, return success response with user data
+    const token = jwt.sign({ id: user._id }, secretKey, {
+      expiresIn: "1h", 
+    });
     return res
       .status(200)
-      .json({ message: "Verification successful", user: user });
+      .json({ message: "Verification successful", user: user, token });
   } catch (error) {
     console.error("Verification error:", error);
     return res.status(500).json({ error: "Internal server error" });
@@ -151,19 +152,42 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    // Check if the student is verified
     if (!student.isVerified) {
       console.log("not verified");
-      return res
-        .status(300)
-        .json({ error: "Account not verified", isVerified: false });
-    }
+      // Redirect the user to the verification page and send a new verification code
+      const verificationCode = generateVerificationCode(); // Generate a new verification code
+      student.verificationCode = verificationCode; // Update the verification code in the database
+      await student.save();
 
-    // Generate JWT token
+      // Send the new verification code via email
+      const mailOptions = {
+        from: "EduMentor",
+        to: email,
+        subject: "New Email Verification Code",
+        text: `Your new verification code to verify your email is: ${verificationCode}`,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Email sending error:", error);
+          return res
+            .status(500)
+            .json({ error: "Error sending verification code" });
+        } else {
+          console.log("New verification email sent:", info.response);
+          return res.status(200).json({
+            success: "Account not verified. New verification code sent",
+            isVerified: false,
+          });
+        }
+      });
+    }
+    else {
     const token = jwt.sign({ id: student._id }, secretKey, {
       expiresIn: "1h", // Token expires in 1 hour
     });
-    res.status(200).json({ token, user: student }); // Include the user object in the response
+    res.status(200).json({ token, user: student });
+  }
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error" });
