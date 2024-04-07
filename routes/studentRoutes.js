@@ -4,14 +4,16 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const jwt = require("jsonwebtoken");
-
+const stripeLib =require("stripe");
 const secretKey = "studentSecretKey";
 
 // Import your Student model
 const Student = require("../models/studentSchema");
 const TeacherDB = require("../models/teacherSchema");
 // Create a Nodemailer transporter
-
+const STRIPE_SECRET =
+  "sk_test_51Obp44KAlnAzxnFU9PrEBv0K27IsOThelFXmUSTkJk7nhzQ0V20hHm75bDPLsYnPnwWs52TIzmz61rUn1U3uQxH500Ob1C6BIw";
+const stripe = stripeLib(STRIPE_SECRET);
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
@@ -191,6 +193,39 @@ router.post("/login", async (req, res) => {
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/payment", async (request, response) => {
+  try {
+    const paymentAmount = request.body.paymentAmount;
+    const amountInCents = paymentAmount * 100;
+
+    // Perform payment processing with Stripe
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "1 Month Subscription",
+            },
+            unit_amount: amountInCents,
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: "http://localhost:5173/",
+      cancel_url: "http://localhost:5173/",
+    });
+
+    // Send the session ID back to the client
+    response.json({ session });
+  } catch (error) {
+    console.error(error);
+    response.status(500).send({ message: "Internal server error" });
   }
 });
 module.exports = router;

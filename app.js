@@ -11,7 +11,7 @@ const studentData = require('./routes/studentData');
 const studentProfile = require('./routes/studentProfile');
 const path = require("path");
 const URL =
-  "mongodb+srv://arhumnaveed092:Ayeshairshad911@cluster0.trsuqsj.mongodb.net/";
+  "mongodb+srv://supremebilal78:t5OxJKSK26h9q9YU@test-db.v6p1fbj.mongodb.net/";
 
 const app = express();
 
