@@ -14,6 +14,10 @@ const TeacherDB = require("../models/teacherSchema");
 const STRIPE_SECRET =
   "sk_test_51Obp44KAlnAzxnFU9PrEBv0K27IsOThelFXmUSTkJk7nhzQ0V20hHm75bDPLsYnPnwWs52TIzmz61rUn1U3uQxH500Ob1C6BIw";
 const stripe = stripeLib(STRIPE_SECRET);
+const Payment = require("../models/paymentSchema");
+
+
+
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   auth: {
@@ -200,6 +204,9 @@ router.post("/payment", async (request, response) => {
   try {
     const paymentAmount = request.body.paymentAmount;
     const amountInCents = paymentAmount * 100;
+    const { metadata } = request.body;
+    const { studentUsername, teacherEmail, trialLessonDate } = metadata;
+    console.log("in payment route: ",metadata);
 
     // Perform payment processing with Stripe
     const session = await stripe.checkout.sessions.create({
@@ -209,7 +216,7 @@ router.post("/payment", async (request, response) => {
           price_data: {
             currency: "usd",
             product_data: {
-              name: "1 Month Subscription",
+              name: "1 Trail Lesson Subscription",
             },
             unit_amount: amountInCents,
           },
@@ -219,7 +226,25 @@ router.post("/payment", async (request, response) => {
       mode: "payment",
       success_url: "http://localhost:5173/",
       cancel_url: "http://localhost:5173/",
+      metadata: {
+        studentUsername,
+        teacherEmail,
+        trialLessonDate,
+      },
     });
+
+    // Store payment data in the database with status set to "pending"
+    await Payment.create({
+      sessionId: session.id,
+      studentId: metadata.StudentUsername,
+      teacherId: metadata.teacherEmail,
+      paymentAmount: paymentAmount,
+      paymentMethod: 'card',
+      paymentStatus: 'pending',
+      trialLessonDate: new Date(metadata.trialLessonDate),
+    });
+
+    console.log('Payment save as pending');
 
     // Send the session ID back to the client
     response.json({ session });
@@ -228,4 +253,7 @@ router.post("/payment", async (request, response) => {
     response.status(500).send({ message: "Internal server error" });
   }
 });
+
+
+
 module.exports = router;
