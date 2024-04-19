@@ -35,19 +35,19 @@ app.post('/webhook', express.raw({type: 'application/json'}), async(request, res
 
   // Handle the event
   switch (event.type) {
-    case 'payment_intent.succeeded':
+    case 'checkout.session.completed':
       const session = event.data.object;
       console.log("Session object:", session);
       const sessionID = session.id;
 
       try {
-        await Payment.updateOne({  sessionID: sessionID }, { paymentStatus: 'success' });
+        await Payment.updateOne({  sessionId: sessionID }, { paymentStatus: 'success' });
         console.log('Payment status updated to "success".');
       } catch (error) {
         console.error('Error updating payment status:', error);
       }
       break;
-      case 'payment_intent.payment_failed':
+      case 'checkout.session.payment_failed':
       const failedSession = event.data.object;
       console.log("Failed Session object:", failedSession);
 
@@ -59,7 +59,7 @@ app.post('/webhook', express.raw({type: 'application/json'}), async(request, res
       }
       break;
 
-    case 'payment_intent.canceled':
+    case 'checkout.session.cancelled':
       const canceledSession = event.data.object;
       console.log("Canceled Session object:", canceledSession);
 

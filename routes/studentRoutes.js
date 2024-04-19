@@ -227,9 +227,9 @@ router.post("/payment", async (request, response) => {
       success_url: "http://localhost:5173/",
       cancel_url: "http://localhost:5173/",
       metadata: {
-        studentUsername,
-        teacherEmail,
-        trialLessonDate,
+        studentUsername: metadata.studentUsername,
+        teacherEmail: teacherEmail,
+        trialLessonDate: trialLessonDate,
       },
     });
 
