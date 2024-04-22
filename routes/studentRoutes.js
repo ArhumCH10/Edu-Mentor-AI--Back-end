@@ -224,7 +224,7 @@ router.post("/payment", async (request, response) => {
         },
       ],
       mode: "payment",
-      success_url: "http://localhost:5173/",
+      success_url: "http://localhost:5173/studentdashboard/timetable",
       cancel_url: "http://localhost:5173/",
       metadata: {
         studentUsername: metadata.studentUsername,

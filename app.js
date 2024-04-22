@@ -9,10 +9,12 @@ const studentRoutes = require("./routes/studentRoutes");
 const uploadPhoto = require('./routes/uploadPhoto');
 const studentData = require('./routes/studentData');
 const studentProfile = require('./routes/studentProfile');
+const paymentRoute = require('./routes/paymentRoute');
+const paymentTeacherRoute = require('./routes/paymentTeacherRoute');
 const path = require("path");
 const stripe =require('stripe')('sk_test_51Obp44KAlnAzxnFU9PrEBv0K27IsOThelFXmUSTkJk7nhzQ0V20hHm75bDPLsYnPnwWs52TIzmz61rUn1U3uQxH500Ob1C6BIw');
 const URL =
-  "mongodb+srv://ghous:12345@cluster0.xaycdod.mongodb.net/";
+  "mongodb+srv://Real_Estate:estate12345@cluster0.stlji.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 
 const app = express();
 const Payment = require('./models/paymentSchema');
@@ -87,6 +89,8 @@ db.once("open", () => {
 });
 
 app.use("/teacher", userRoutes);
+app.use("/teacher", paymentTeacherRoute);
+app.use("/student", paymentRoute);
 app.use("/student", studentRoutes);
 app.use("/student", studentData);
 app.use("/student", studentProfile);

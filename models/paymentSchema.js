@@ -26,7 +26,7 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ['success', 'fail', 'cancel','pending'],
+    enum: ['success', 'fail', 'cancel', 'pending'],
     default: 'pending'
   },
   paymentDate: {
@@ -36,7 +36,23 @@ const paymentSchema = new mongoose.Schema({
   trialLessonDate: {
     type: Date,
     required: true
-  }
+  },
+  lessonTimeDuration: {
+    type: Number,
+    default: 55
+  },
+  lessonTime: {
+    type: String,
+    default: "3:00"
+  },
+  lessonDay: {
+    type: String,
+    default: "Tuesday"
+  },
+  lessonType: {
+    type: String,
+    default: "Trial"
+  },
 });
 
 // Create a model using the schema
