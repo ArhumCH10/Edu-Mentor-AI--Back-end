@@ -67,13 +67,11 @@ router.post('/createConversation', async (req, res) => {
   try {
     const { teacherId, studentId } = req.body;
 
-    console.log('teacherId, studentId', teacherId, studentId);
-    // Check if both teacherId and studentId are provided
+    console.log('teacherId, studentId', teacherId, studentId); 
     if (!teacherId || !studentId) {
       return res.status(400).json({ message: "Both teacherId and studentId are required" });
     }
-
-    // Check if a conversation already exists with the provided members
+ 
     const existingConversation = await Conversation.findOne({
       members: { $all: [teacherId, studentId] }
     });
