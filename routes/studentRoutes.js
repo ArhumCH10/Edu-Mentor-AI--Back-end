@@ -149,7 +149,7 @@ router.post("/login", async (req, res) => {
 
     // If student doesn't exist, return an error
     if (!student) {
-      return res.status(400).json({ error: "Invalid email or password" });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
 
     // Check if the password is correct

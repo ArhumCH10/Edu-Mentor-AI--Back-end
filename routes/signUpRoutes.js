@@ -6,6 +6,7 @@ const signupController = require("../controllers/teacherSignUp");
 router.post(
   "/signup",
   signupController.isNewUser,
+  signupController.isRegisteredAsStudent,
   signupController.isPasswordValid,
   signupController.sendEmailVerification,
   signupController.SignUp

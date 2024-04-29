@@ -112,46 +112,6 @@ exports.deleteLanguageAndLevel = async (req, res, next) => {
     }
   };  
 
-
-
-//   exports.Photo = async (req, res, next) => {
-//     try {
-//         const token = req.header("Authorization").split(" ")[1];
-//         const decodedToken = jwt.verify(token, "teacherSecretKey");
-//         const userId = decodedToken.userId;
-
-//         const user = await teacherDB.findById(userId);
-
-//         if (!user) {
-//             return res.status(404).json({ message: "User not found" });
-//         }
-
-//         if (!req.file) {
-//             return res.status(400).json({ message: "Invalid or missing file in the request" });
-//         }
-
-
-//         // Here, instead of saving a buffer, you save the file path
-//         const filePath = req.file.path;
-
-//         const updatedUser = await teacherDB.findByIdAndUpdate(
-//             userId,
-//             {
-//                 profilePhoto: filePath, // Save the file path
-//             },
-//             { new: true }
-//         );
-
-//         res.status(200).json({
-//             message: "Profile photo updated successfully",
-//             updatedTeacher: updatedUser,
-//         });
-//     } catch (error) {
-//         console.error("Error updating profile photo:", error);
-//         return res.status(500).json({ message: "An unexpected error occurred" });
-//     }
-// };
-
 exports.Photo = async (req, res) => {
     try {
         const token = req.header("Authorization").split(" ")[1];

@@ -43,11 +43,11 @@ const paymentSchema = new mongoose.Schema({
   },
   lessonTime: {
     type: String,
-    default: "3:00"
+    default: "9:00"
   },
   lessonDay: {
     type: String,
-    default: "Tuesday"
+    default: "Thursday"
   },
   lessonType: {
     type: String,
