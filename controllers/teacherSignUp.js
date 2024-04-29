@@ -1,4 +1,5 @@
 const Teacher = require('../models/teacherSchema'); 
+const Student = require('../models/studentSchema'); 
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -66,6 +67,17 @@ exports.isNewUser = (req, res, next) => {
   Teacher.findOne({ email: email }).then((user) => {
     if (user) {
       return res.status(400).json({ error: "Email already taken" });
+    }
+    next();
+  });
+};
+
+exports.isRegisteredAsStudent = (req, res, next) => {
+  const email = req.body.email;
+
+  Student.findOne({ email: email }).then((user) => {
+    if (user) {
+      return res.status(402).json({ error: "Email already registered as Student" });
     }
     next();
   });
