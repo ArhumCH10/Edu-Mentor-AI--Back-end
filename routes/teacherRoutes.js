@@ -133,7 +133,6 @@ router.get('/searchTutors', async (req, res) => {
     try {
         const { subject, Country, Days, Times, minP, maxP } = req.query;
 
-        console.log("data in query", subject, Country, Days, Times, minP, maxP);
         const query = {};
         if (subject) query.subjectsTaught = subject;
         if (Days) {
@@ -185,10 +184,9 @@ router.get('/searchTutors', async (req, res) => {
         query.isVerified = true;
         query.isRegistered = true;
 
-        console.log("query", query);
 
         const tutors = await teacherDB.find(query).select('-password -isVerified -verificationToken -isRegistered -registrationCompleted -isGreaterThan18');
-        console.log("tutors", tutors);
+       
         res.json(tutors);
     } catch (err) {
         console.error(err);
@@ -199,9 +197,7 @@ router.get('/searchTutors', async (req, res) => {
 router.get('/tutorProfile/', async (req, res) => {
     try {
         const {id} = req.query;
-        console.log("id: ", id); 
         const tutorObjectId = new ObjectId(id);
-        console.log("tutorObjectId: ", tutorObjectId);
         const tutor = await teacherDB.findById(tutorObjectId).select('-password -isVerified -verificationToken -isRegistered -registrationCompleted -isGreaterThan18');
         if (!tutor) {
             return res.status(404).json({ message: 'Tutor not found' });
