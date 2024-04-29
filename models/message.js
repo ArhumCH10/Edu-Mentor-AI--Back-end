@@ -10,7 +10,10 @@ const messageSchema = new mongoose.Schema({
     },
     message:{
         type:String,
-    }
+    },
+    type:{
+        type:String,
+    },
 
 })
 const Message = mongoose.model('Message',messageSchema);
