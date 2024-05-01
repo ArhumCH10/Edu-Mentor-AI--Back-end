@@ -5,9 +5,9 @@ const  Message  = require('../models/message');
 // Send a message
 router.post('/messages', async (req, res) => {
   try {
-    const { conversationId, senderId, message } = req.body;
+    const { conversationId, senderId, message,type } = req.body;
     console.log(conversationId, senderId, message);
-    const newMessage = new Message({ conversationId, senderId, message });
+    const newMessage = new Message({ conversationId, senderId, message,type });
     await newMessage.save();
     res.status(201).json(newMessage);
   } catch (error) {
@@ -30,13 +30,13 @@ router.get('/messages/:conversationId', async (req, res) => {
       const position = message.senderId === userId ? 'right' : 'left';
       return { 
         position: position,
-        type: "text",
+        type: message.type || 'text' ,
         text: message.message,
         date: new Date(),
       };
 
     });
-    console.log('formattedMessages: ',formattedMessages);
+//    console.log('formattedMessages: ',formattedMessages);
 
     res.json(formattedMessages);
   } catch (error) {
