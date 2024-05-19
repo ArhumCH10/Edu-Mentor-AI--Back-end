@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const teacherDB = require("../models/teacherSchema");
+const studentDB=require("../models/studentSchema")
 const { validationResult } = require("express-validator");
 const nodemailer = require("nodemailer");
 
@@ -99,21 +100,29 @@ function generateVerificationCode() {
   const max = 999999;
   return (Math.floor(Math.random() * (max - min + 1)) + min).toString();
 }
-
 exports.resetPassword = async (req, res, next) => {
   const userEmail = req.body.email;
 
   try {
-    const user = await teacherDB.findOne({ email: userEmail });
+    const teacher = await teacherDB.findOne({ email: userEmail });
+    const student = await studentDB.findOne({ email: userEmail });
 
-    if (!user) {
+    if (!teacher && !student) {
       return res.status(404).json({ error: "User not found" });
     }
 
     const verificationCode = generateVerificationCode();
 
-    user.verificationToken = verificationCode;
-    await user.save();
+    let user;
+    if (teacher) {
+      teacher.verificationToken = verificationCode;
+      await teacher.save();
+      user = teacher;
+    } else if (student) {
+      student.verificationToken = verificationCode;
+      await student.save();
+      user = student;
+    }
 
     const mailOptions = {
       from: "Edumentor.com",
@@ -125,33 +134,29 @@ exports.resetPassword = async (req, res, next) => {
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Email sending error:", error);
-        return res
-          .status(500)
-          .json({ error: "Error sending verification email" });
+        return res.status(500).json({ error: "Error sending verification email" });
       } else {
         console.log("Verification email sent:", info.response);
-        res
-          .status(200)
-          .json({ message: "Verification email sent successfully" });
+        return res.status(200).json({ message: "Verification email sent successfully" });
       }
     });
   } catch (error) {
     console.error("Error resetting password:", error);
-    res.status(500).json({ error: "Error resetting password" });
+    return res.status(500).json({ error: "Error resetting password" });
   }
 };
+
 
 exports.validateResetPassword = async (req, res, next) => {
   const { email, verificationCode } = req.body;
 
   console.log(email, verificationCode);
   try {
-    const user = await teacherDB.findOne({ email });
+    const teacher = await teacherDB.findOne({ email });
+    const student = await studentDB.findOne({ email });
 
-    if (!user || user.verificationToken !== verificationCode) {
-      return res
-        .status(400)
-        .json({ error: "Invalid email or verification code" });
+    if ((!teacher || teacher.verificationToken !== verificationCode) && (!student || student.verificationToken !== verificationCode)) {
+      return res.status(400).json({ error: "Invalid email or verification code" });
     }
 
     return res.status(200).json({ message: "Verification successful" });
@@ -161,10 +166,17 @@ exports.validateResetPassword = async (req, res, next) => {
   }
 };
 
+
 exports.finalResetPassword = async (req, res, next) => {
   const { email, newPassword } = req.body;
   try {
-    const user = await teacherDB.findOne({ email });
+    const teacher = await teacherDB.findOne({ email });
+    const student = await studentDB.findOne({ email });
+
+    const user = teacher || student;
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     bcrypt.hash(newPassword, 10, async (err, hashedPassword) => {
       if (err) {
@@ -183,3 +195,4 @@ exports.finalResetPassword = async (req, res, next) => {
     return res.status(500).json({ error: "Error updating password" });
   }
 };
+
