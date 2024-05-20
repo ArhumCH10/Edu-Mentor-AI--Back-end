@@ -13,6 +13,7 @@ const paymentRoute = require('./routes/paymentRoute');
 const paymentTeacherRoute = require('./routes/paymentTeacherRoute');
 const messageRoutes = require('./routes/messageingRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
+const sendMessageUploadsRouter = require('./routes/sendMessageFile');
 const path = require("path");
 const io = require("socket.io")(8000, {
   cors: {
@@ -21,7 +22,7 @@ const io = require("socket.io")(8000, {
 });
 const stripe = require('stripe')('sk_test_51Obp44KAlnAzxnFU9PrEBv0K27IsOThelFXmUSTkJk7nhzQ0V20hHm75bDPLsYnPnwWs52TIzmz61rUn1U3uQxH500Ob1C6BIw');
 const URL =
-  "mongodb+srv://Real_Estate:estate12345@cluster0.stlji.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+  "mongodb+srv://Edu-Mentor-AI:12345@edu-mentor-ai.rz8ecva.mongodb.net/";
 
 const app = express();
 
@@ -118,16 +119,16 @@ io.on("connection", (socket) => {
     
   });
 
-  socket.on('sendMessage', async (data) => {
-    const reciever = connectedClients.find((user) => user.userId === data.recieverId);
-    //console.log('data',data);
-    //console.log('reciever find in connected clients: ',reciever);
+  socket.on('sendMessage', async (msgdata) => {
+    const reciever = connectedClients.find((user) => user.userId === msgdata.recieverId);
+    console.log('data',msgdata);
+    console.log('reciever find in connected clients: ',reciever);
     if(reciever){
-      io.to(reciever.socketId).emit('getMessage', data);
+      io.to(reciever.socketId).emit('getMessage', msgdata);
     }
-    io.to(socket.id).emit('sendItself', data);
-    const { conversationId, senderId, text,type } = data;
-    const newMessage = new Message({ conversationId, senderId, message:text, type });
+    io.to(socket.id).emit('sendItself', msgdata);
+    const { conversationId, senderId, text,type ,date, data } = msgdata;
+    const newMessage = new Message({ conversationId, senderId, message:text, type,date,data});
     await newMessage.save();
   })
   
@@ -141,6 +142,7 @@ db.once("open", () => {
 
 app.use(messageRoutes);
 app.use(conversationRoutes);
+app.use(sendMessageUploadsRouter);
 app.use("/teacher", userRoutes);
 app.use("/teacher", paymentTeacherRoute);
 app.use("/student", paymentRoute);
@@ -152,6 +154,7 @@ app.use(teacherData);
 app.use(uploadPhoto);
 app.use("/admin", adminRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/sendMessageUploads", express.static(path.join(__dirname, "sendMessageUploads")));
 mongoose
   .connect(URL)
   .then((result) => {

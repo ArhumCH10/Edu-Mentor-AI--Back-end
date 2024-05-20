@@ -28,12 +28,19 @@ router.get('/messages/:conversationId', async (req, res) => {
     const messages = await Message.find({ conversationId });
     const formattedMessages = messages.map(message => {
       const position = message.senderId === userId ? 'right' : 'left';
-      return { 
+     const formattedMessage = { 
         position: position,
-        type: message.type || 'text' ,
+        type: message.type || 'text',
         text: message.message,
-        date: new Date(),
+        date: new Date(message.date),
       };
+
+      if (message.type === 'file' || message.type === 'photo') {
+        formattedMessage.data =  message.data;
+        formattedMessage.data.uri =   "http://localhost:8080" + message.data.uri;
+      }
+
+      return formattedMessage;
 
     });
 //    console.log('formattedMessages: ',formattedMessages);

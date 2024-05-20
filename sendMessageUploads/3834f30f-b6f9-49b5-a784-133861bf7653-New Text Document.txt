@@ -1,0 +1,750 @@
+#include <iostream>
+#include <string>
+#include <climits>
+#include <stdexcept>
+
+template <typename T>
+class MyStack {
+private:
+    static const int MAX_SIZE = 100; // Define your maximum size here
+    T elements[MAX_SIZE];
+    int topIndex;
+
+public:
+    MyStack() : topIndex(-1) {}
+
+    void push(const T& value) {
+        if (topIndex < MAX_SIZE - 1) {
+            elements[++topIndex] = value;
+        } else {
+            std::cout << "Stack is full, cannot push more elements.\n";
+        }
+    }
+
+    void pop() {
+        if (topIndex >= 0) {
+            --topIndex;
+        }
+    }
+
+    T& top() {
+        if (topIndex >= 0) {
+            return elements[topIndex];
+        }
+        throw std::out_of_range("Stack is empty");
+    }
+
+    bool empty() const {
+        return topIndex == -1;
+    }
+
+    size_t size() const {
+        return topIndex + 1;
+    }
+};
+
+template <typename T>
+class MyPriorityQueue {
+private:
+    static const int MAX_SIZE = 100;
+    T elements[MAX_SIZE];
+    int currentSize;
+
+    void shiftUp(int index) {
+        while (index > 0) {
+            int parent = (index - 1) / 2;
+            if (elements[parent] > elements[index]) {
+                std::swap(elements[parent], elements[index]);
+                index = parent;
+            } else {
+                break;
+            }
+        }
+    }
+
+    void shiftDown(int index) {
+        int leftChild, rightChild, minIndex;
+        while ((2 * index) + 1 < currentSize) {
+            leftChild = 2 * index + 1;
+            rightChild = 2 * index + 2;
+            minIndex = index;
+
+            if (leftChild < currentSize && elements[leftChild] < elements[minIndex]) {
+                minIndex = leftChild;
+            }
+            if (rightChild < currentSize && elements[rightChild] < elements[minIndex]) {
+                minIndex = rightChild;
+            }
+            if (index != minIndex) {
+                std::swap(elements[index], elements[minIndex]);
+                index = minIndex;
+            } else {
+                break;
+            }
+        }
+    }
+
+public:
+    MyPriorityQueue() : currentSize(0) {}
+
+    void push(const T& value) {
+        if (currentSize < MAX_SIZE) {
+            elements[currentSize++] = value;
+            shiftUp(currentSize - 1);
+        } else {
+            std::cout << "Priority Queue is full, cannot push more elements.\n";
+        }
+    }
+
+    void pop() {
+        if (currentSize > 0) {
+            elements[0] = elements[currentSize - 1];
+            currentSize--;
+            shiftDown(0);
+        }
+    }
+
+    T& top() {
+        if (currentSize > 0) {
+            return elements[0];
+        }
+        throw std::out_of_range("Priority Queue is empty");
+    }
+
+    bool empty() const {
+        return currentSize == 0;
+    }
+
+    size_t size() const {
+        return currentSize;
+    }
+};
+
+class MenuItem {
+private:
+    std::string itemName;
+    double price;
+
+public:
+    MenuItem() : itemName(""), price(0.0) {}
+    MenuItem(std::string name, double cost) : itemName(std::move(name)), price(cost) {}
+
+    std::string getItemName() const {
+        return itemName;
+    }
+
+    double getPrice() const {
+        return price;
+    }
+};
+
+class Menu {
+private:
+    static const int MAX_ITEMS = 100;
+    MenuItem items[MAX_ITEMS];
+    int itemCount;
+
+public:
+           Menu() : itemCount(0) {}
+
+    void addItem(const std::string& itemName, double price) {
+        if (itemCount < MAX_ITEMS) {
+            items[itemCount++] = MenuItem(itemName, price);
+        } else {
+            std::cout << "Menu is full, cannot add more items.\n";
+        }
+    }
+
+    void removeItem(const std::string& itemName) {
+        for (int i = 0; i < itemCount; ++i) {
+            if (items[i].getItemName() == itemName) {
+                for (int j = i; j < itemCount - 1; ++j) {
+                    items[j] = items[j + 1];
+                }
+                --itemCount;
+                std::cout << "Item removed from the menu.\n";
+                return;
+            }
+        }
+        std::cout << "Item not found in the menu.\n";
+    }
+
+    void displayMenu() const {
+        std::cout << "Menu:\n";
+        for (int i = 0; i < itemCount; ++i) {
+            std::cout << items[i].getItemName() << " - $" << items[i].getPrice() << std::endl;
+        }
+    }
+
+    double getPrice(const std::string& itemName) const {
+        for (int i = 0; i < itemCount; ++i) {
+            if (items[i].getItemName() == itemName) {
+                return items[i].getPrice();
+            }
+        }
+        return -1; // Return negative price for non-existent items
+    }
+      
+};
+
+class Customer {
+private:
+    static int nextID;
+    int customerID;
+    std::string name;
+    int age;
+    std::string password;
+    bool loggedIn;
+
+public:
+    Customer() : name(""), age(0), password(""), loggedIn(false) {}
+    Customer(std::string _name, int _age, std::string _password) : name(std::move(_name)), age(_age), password(std::move(_password)), loggedIn(false) {
+        customerID = nextID++;
+    }
+
+    int getID() const {
+        return customerID;
+    }
+
+    std::string getName() const {
+        return name;
+    }
+
+    int getAge() const {
+        return age;
+    }
+
+    bool isLoggedIn() const {
+        return loggedIn;
+    }
+
+    bool matchPassword(const std::string& pwd) const {
+        return password == pwd;
+    }
+
+    void login() {
+        loggedIn = true;
+    }
+
+    void logout() {
+        loggedIn = false;
+    }
+};
+
+int Customer::nextID = 1;
+
+
+class DeliveryLocation {
+private:
+    static const int MAX_CONNECTIONS = 10;
+    std::string locationName;
+    DeliveryLocation* connections[MAX_CONNECTIONS];
+    int distances[MAX_CONNECTIONS];
+    int connectionCount;
+
+public:
+    DeliveryLocation(std::string name) : locationName(std::move(name)), connectionCount(0) {}
+
+    std::string getName() const {
+        return locationName;
+    }
+
+    void addConnection(DeliveryLocation* location, int distance) {
+        if (connectionCount < MAX_CONNECTIONS) {
+            connections[connectionCount] = location;
+            distances[connectionCount] = distance;
+            ++connectionCount;
+        } else {
+            std::cout << "Maximum connections reached for this location.\n";
+        }
+    }
+
+    DeliveryLocation** getConnections() {
+        return connections;
+    }
+
+    int* getDistances() {
+        return distances;
+    }
+
+    int getConnectionCount() const {
+        return connectionCount;
+    }
+};
+
+class Order {
+private:
+    static int nextOrderID;
+    int orderID;
+    Customer customer; // Assuming Customer class is defined and implemented
+
+public:
+   Order(){}
+   Order(Customer _customer) : orderID(nextOrderID++), customer(_customer) {}
+
+    // Other members and methods of the Order class...
+        static int getNextOrderID() {
+        return nextOrderID;
+    }
+    int getOrderID(){
+        return orderID;
+    }
+        bool operator>(const Order& other) const {
+        // Compare based on orderID for greater than (>)
+        return this->orderID > other.orderID;
+    }
+
+    bool operator<(const Order& other) const {
+        // Compare based on orderID for less than (<)
+        return this->orderID < other.orderID;
+    }
+};
+
+int Order::nextOrderID = 1;
+
+class OrderManager {
+private:
+    MyStack<Order> walkInOrders;
+    MyPriorityQueue<Order> homeDeliveryOrders;
+    MyStack<Order> dineInOrders;
+
+public:
+    void placeOrder(Order order, const std::string& orderType) {
+        if (orderType == "Walk-In") {
+            walkInOrders.push(order);
+            std::cout << "Walk-In order placed!\n";
+        } else if (orderType == "Home Delivery") {
+            homeDeliveryOrders.push(order);
+            std::cout << "Home Delivery order placed!\n";
+        } else if (orderType == "Dine-In") {
+            dineInOrders.push(order);
+            std::cout << "Dine-In order placed!\n";
+        } else {
+            std::cout << "Invalid order type!\n";
+        }
+    }
+
+    Order getNextOrder(const std::string& orderType) {
+        Order nextOrder;
+        if (orderType == "Walk-In") {
+            if (!walkInOrders.empty()) {
+                nextOrder = walkInOrders.top();
+                walkInOrders.pop();
+            }
+        } else if (orderType == "Home Delivery") {
+            if (!homeDeliveryOrders.empty()) {
+                nextOrder = homeDeliveryOrders.top();
+                homeDeliveryOrders.pop();
+            }
+        } else if (orderType == "Dine-In") {
+            if (!dineInOrders.empty()) {
+                nextOrder = dineInOrders.top();
+                dineInOrders.pop();
+            }
+        }
+        return nextOrder;
+    }
+};
+
+class Restaurant {
+private:
+    static const int MAX_LOCATIONS = 10;
+    DeliveryLocation* locations[MAX_LOCATIONS];
+    int locationCount;
+    static const int MAX_CUSTOMERS = 100; // Declaration added
+    Customer customers[MAX_CUSTOMERS];    // Declaration added
+    int customerCount;                    // Declaration added
+    OrderManager orderManager;
+public:
+    Restaurant() : locationCount(0), customerCount(0) {}
+
+    int minDistanceIndex(int dist[], bool visited[], int size) {
+        int minDistance = INT_MAX, minIndex = -1;
+        for (int i = 0; i < size; ++i) {
+            if (!visited[i] && dist[i] <= minDistance) {
+                minDistance = dist[i];
+                minIndex = i;
+            }
+        }
+        return minIndex;
+    }
+
+    int calculateShortestDistance(DeliveryLocation* src, DeliveryLocation* dest) {
+        const int MAX_NODES = locationCount;
+        int distances[MAX_NODES];
+        bool visited[MAX_NODES];
+
+        for (int i = 0; i < MAX_NODES; ++i) {
+            distances[i] = INT_MAX;
+            visited[i] = false;
+        }
+
+        int srcIndex = -1, destIndex = -1;
+        for (int i = 0; i < locationCount; ++i) {
+            if (locations[i] == src) {
+                srcIndex = i;
+            }
+            if (locations[i] == dest) {
+                destIndex = i;
+            }
+        }
+
+        if (srcIndex == -1 || destIndex == -1) {
+            std::cout << "Invalid source or destination location.\n";
+            return -1;
+        }
+
+        distances[srcIndex] = 0;
+
+        for (int count = 0; count < MAX_NODES - 1; ++count) {
+            int u = minDistanceIndex(distances, visited, MAX_NODES);
+            visited[u] = true;
+
+            for (int v = 0; v < MAX_NODES; ++v) {
+                for (int i = 0; i < locations[u]->getConnectionCount(); ++i) {
+                    if (locations[u]->getConnections()[i] == locations[v]) {
+                        int weight = locations[u]->getDistances()[i];
+                        if (!visited[v] && distances[u] != INT_MAX && distances[u] + weight < distances[v]) {
+                            distances[v] = distances[u] + weight;
+                        }
+                    }
+                }
+            }
+        }
+
+        return distances[destIndex];
+    }
+   
+    bool registerCustomer(const std::string& name, int age, const std::string& password) {
+        if (customerCount < MAX_CUSTOMERS) {
+            customers[customerCount++] = Customer(name, age, password);
+            return true;
+        }
+        return false;
+    }
+
+    Customer* loginCustomer(int customerID, const std::string& password) {
+        for (int i = 0; i < customerCount; ++i) {
+            if (customers[i].getID() == customerID && customers[i].matchPassword(password)) {
+                customers[i].login();
+                return &customers[i];
+            }
+        }
+        return nullptr;
+    }
+
+    void addLocation(const std::string& locationName) {
+        if (locationCount < MAX_LOCATIONS) {
+            locations[locationCount] = new DeliveryLocation(locationName);
+            ++locationCount;
+        } else {
+            std::cout << "Maximum locations reached in the delivery system.\n";
+        }
+    }
+
+    void addConnection(const std::string& location1, const std::string& location2, int distance) {
+        DeliveryLocation* loc1 = findLocation(location1);
+        DeliveryLocation* loc2 = findLocation(location2);
+
+        if (loc1 && loc2) {
+            loc1->addConnection(loc2, distance);
+            loc2->addConnection(loc1, distance);
+        }
+    }
+
+    DeliveryLocation* findLocation(const std::string& locationName) {
+        for (int i = 0; i < locationCount; ++i) {
+            if (locations[i]->getName() == locationName) {
+                return locations[i];
+            }
+        }
+        std::cout << "Location not found: " << locationName << std::endl;
+        return nullptr;
+    }
+    
+    void placeOrder(const std::string& orderType, const Menu& menu ) {
+        std::string itemName;
+    int quantity;
+
+    std::cout << "Enter item name: ";
+    std::cin >> itemName;
+    std::cout << "Enter quantity: ";
+    std::cin >> quantity;
+
+    double totalPrice = menu.getPrice(itemName) * quantity;
+    Order order; 
+
+    orderManager.placeOrder(order, orderType);
+    }
+
+    void serveNextOrder(const std::string& orderType) {
+        Order nextOrder = orderManager.getNextOrder(orderType);
+        if (nextOrder.getOrderID() != -1) {
+            std::cout << "Serving next order...\n";
+            // Process and serve the order
+        } else {
+            std::cout << "No orders of type " << orderType << " at the moment.\n";
+        }
+    }
+};
+
+void registerCustomer(Restaurant& restaurant) {
+    std::string name, password, confirmPassword;
+    int age;
+
+    std::cout << "Enter your name: ";
+    std::cin >> name;
+    std::cout << "Enter your age: ";
+    std::cin >> age;
+
+    while (true) {
+        std::cout << "Create a password: ";
+        std::cin >> password;
+        std::cout << "Confirm your password: ";
+        std::cin >> confirmPassword;
+
+        if (password != confirmPassword) {
+            std::cout << "Passwords do not match. Please try again.\n";
+        } else {
+            break;
+        }
+    }
+
+    bool registered = restaurant.registerCustomer(name, age, password);
+    if (registered) {
+        std::cout << "Registration successful!\n";
+    } else {
+        std::cout << "Registration failed. Maximum customers reached.\n";
+    }
+}
+
+Customer* loginCustomer(Restaurant& restaurant) {
+    int id;
+    std::string password;
+
+    std::cout << "Enter your customer ID: ";
+    std::cin >> id;
+    std::cout << "Enter your password: ";
+    std::cin >> password;
+
+    Customer* customer = restaurant.loginCustomer(id, password);
+    if (customer != nullptr) {
+        std::cout << "Login successful!\n";
+    } else {
+        std::cout << "Login failed. Invalid credentials.\n";
+    }
+    return customer;
+}
+
+Customer* loggedInCustomer = nullptr;
+
+class Admin {
+private:
+    std::string username;
+    std::string password;
+
+public:
+    Admin(std::string _username, std::string _password) : username(std::move(_username)), password(std::move(_password)) {}
+
+    bool login(const std::string& enteredUsername, const std::string& enteredPassword) {
+        return (enteredUsername == username && enteredPassword == password);
+    }
+
+    void updateMenu(Menu& menu, const std::string& itemName, double price) {
+        menu.addItem(itemName, price);
+        std::cout << "Menu updated successfully!\n";
+    }
+
+    void addDeliveryLocation(Restaurant& restaurant, const std::string& locationName) {
+        restaurant.addLocation(locationName);
+        std::cout << "Delivery location added: " << locationName << std::endl;
+    }
+
+    void removeDeliveryLocation(Restaurant& restaurant, const std::string& locationName) {
+        // Implement the removal logic here using the findLocation method in the Restaurant class
+        // Similar to addDeliveryLocation but removing the location instead
+        // restaurant.removeLocation(locationName);
+        std::cout << "Delivery location removed: " << locationName << std::endl;
+    }
+
+    void updateTableDetails(Restaurant& restaurant, const std::string& locationName, const std::string& tableName) {
+        // Implement logic to update table details for dine-in
+        // restaurant.updateTableDetails(locationName, tableName);
+        std::cout << "Table details updated for " << locationName << ": " << tableName << std::endl;
+    }
+
+    void salesReport(const OrderManager& orderManager) {
+        // Implement sales report logic based on served orders in OrderManager
+        // This can include weekly, monthly, or custom reports
+        // orderManager.generateSalesReport();
+        std::cout << "Sales report generated.\n";
+    }
+
+    void customerRecordLookup(const std::string& customerName) {
+        // Implement customer record lookup logic
+        // Display details of a particular customer based on the provided name
+        // customerManager.lookupCustomerRecord(customerName);
+        std::cout << "Customer record for " << customerName << " found.\n";
+    }
+};
+
+int main() {
+    Restaurant restaurant;
+    Menu menu;
+    OrderManager orderManager;
+
+    // ... (existing code)
+
+    int roleChoice = 0;
+    std::string orderType;
+
+     while (roleChoice != 3) {
+        // Role selection code...
+
+        switch (roleChoice) {
+            case 1: {
+                std::string adminUsername = "admin";
+                std::string adminPassword = "admin123";
+                Admin admin(adminUsername, adminPassword);
+
+                std::string enteredAdminUsername, enteredAdminPassword;
+                std::cout << "Enter admin username: ";
+                std::cin >> enteredAdminUsername;
+                std::cout << "Enter admin password: ";
+                std::cin >> enteredAdminPassword;
+
+                if (admin.login(enteredAdminUsername, enteredAdminPassword)) {
+                    int adminOption = 0;
+
+                    while (adminOption != 7) {
+                        std::cout << "Admin Menu:\n"
+                                     "1. Update Menu\n"
+                                     "2. Add Delivery Location\n"
+                                     "3. Remove Delivery Location\n"
+                                     "4. Update Table Details\n"
+                                     "5. Sales Report\n"
+                                     "6. Customer Record Lookup\n"
+                                     "7. Exit\n";
+                        std::cout << "Enter your choice: ";
+                        std::cin >> adminOption;
+
+                        switch (adminOption) {
+                            case 1: {
+                                std::string itemName;
+                                double price;
+
+                                std::cout << "Enter item name: ";
+                                std::cin >> itemName;
+                                std::cout << "Enter item price: ";
+                                std::cin >> price;
+
+                                admin.updateMenu(menu, itemName, price);
+                                break;
+                            }
+                            case 2: {
+                                std::string locationName;
+                                std::cout << "Enter delivery location name: ";
+                                std::cin >> locationName;
+
+                                admin.addDeliveryLocation(restaurant, locationName);
+                                break;
+                            }
+                            case 3: {
+                                std::string locationName;
+                                std::cout << "Enter delivery location name to remove: ";
+                                std::cin >> locationName;
+
+                                admin.removeDeliveryLocation(restaurant, locationName);
+                                break;
+                            }
+                            case 4: {
+                                std::string locationName, tableName;
+                                std::cout << "Enter location name: ";
+                                std::cin >> locationName;
+                                std::cout << "Enter table name: ";
+                                std::cin >> tableName;
+
+                                admin.updateTableDetails(restaurant, locationName, tableName);
+                                break;
+                            }
+                            case 5: {
+                                admin.salesReport(orderManager);
+                                break;
+                            }
+                            case 6: {
+                                // Add functionality for customer record lookup
+                                break;
+                            }
+                            case 7: {
+                                std::cout << "Exiting admin panel...\n";
+                                break;
+                            }
+                            default:
+                                std::cout << "Invalid choice. Please try again.\n";
+                                break;
+                        }
+                    }
+                } else {
+                    std::cout << "Admin login failed. Invalid credentials.\n";
+                }
+                break;
+            }
+                 case 2: {
+                int choice=0;
+                   while (choice != 5) {
+        std::cout << "Press 1 for Register\n"
+                     "Press 2 for Login\n"
+                     "Press 3 for See Menu\n"
+                     "Press 4 for Place Order\n"
+                     "Press 5 to Exit\n";
+
+        std::cout << "Enter your choice: ";
+        std::cin >> choice;
+
+        switch (choice) {
+            case 1:
+                registerCustomer(restaurant);
+                break;
+            case 2:
+                loggedInCustomer = loginCustomer(restaurant);
+                break;
+            case 3:
+                menu.displayMenu();
+                break;
+            case 4:
+                std::cout << "Enter order type (Walk-In, Home Delivery, Dine-In): ";
+                std::cin >> orderType;
+                if (loggedInCustomer != nullptr) {
+                    restaurant.placeOrder(orderType, menu);
+                } else {
+                    std::cout << "Please login first!\n";
+                }
+                break;
+
+            case 5:
+                std::cout << "Exiting...\n";
+                break;
+            default:
+                std::cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+    }
+
+                break;
+            
+                break;
+            }
+            case 3: {
+                std::cout << "Exiting...\n";
+                break;
+            }
+            default:
+                std::cout << "Invalid choice. Please try again.\n";
+                break;
+        }
+    }
+    
+
+    return 0;
+
+

@@ -5,16 +5,23 @@ const messageSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    senderId:{
-        type:String,
+    senderId: {
+        type: String,
     },
-    message:{
-        type:String,
+    message: {
+        type: String,
     },
-    type:{
-        type:String,
+    type: {
+        type: String,
     },
+    date: {
+        type: Date,
+        default: Date.now,
+    },
+    data: {
+        type: Object,
+    },
+});
 
-})
-const Message = mongoose.model('Message',messageSchema);
+const Message = mongoose.model('Message', messageSchema);
 module.exports = Message;
