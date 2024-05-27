@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const loginRoutes = require("./routes/loginRoutes");
 const userRoutes = require("./routes/signUpRoutes");
 const teacherData = require("./routes/teacherRoutes");
@@ -9,8 +10,6 @@ const studentRoutes = require("./routes/studentRoutes");
 const uploadPhoto = require('./routes/uploadPhoto');
 const studentData = require('./routes/studentData');
 const studentProfile = require('./routes/studentProfile');
-const paymentRoute = require('./routes/paymentRoute');
-const paymentTeacherRoute = require('./routes/paymentTeacherRoute');
 const messageRoutes = require('./routes/messageingRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
 const sendMessageUploadsRouter = require('./routes/sendMessageFile');
@@ -86,8 +85,105 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
   // Return a 200 response to acknowledge receipt of the event
   response.send();
 });
+
 app.use(express.json());
 app.use(cors());
+const Student = require("./models/studentSchema");
+const Teacher = require("./models/teacherSchema");
+app.get("/student/payments", async (req, res) => {
+  try {
+    const userEmail = req.query.email; 
+    console.log(userEmail);
+    const student = await Student.findOne({ email: userEmail }).exec();
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    const payments = await Payment.find({ studentId: student.username, paymentStatus: 'success' }).exec();
+
+    if (payments.length === 0) {
+      return res.status(404).json({ message: "No successful payments found for this student." });
+    }
+
+    const results = [];
+
+    for (const payment of payments) {
+        const teacher = await Teacher.findOne({ email: payment.teacherId }).exec();
+        if (teacher) {
+            results.push({
+                teacherName: teacher.firstName + " " + teacher.lastName,
+                amountPaid: payment.paymentAmount,
+                lessonTimeDuration: payment.lessonTimeDuration,
+                lessonDay: payment.lessonDay,
+                lessonType: payment.lessonType,
+                lessonDate: payment.trialLessonDate,
+                paymentStatus: payment.paymentStatus,
+                lessonTime: payment.lessonTime,
+                paymentDate : payment.paymentDate,
+               profilePhoto: teacher.profilePhoto, 
+               introduceYourself: teacher.profileDescription.introduceYourself,
+                subjectsTaught: teacher.subjectsTaught,
+                    countryOrigin: teacher.countryOrigin,
+                    languagesSpoken: teacher.LanguageSpoken.join(', '),
+                    subjectsTaught: teacher.subjectsTaught,
+                    hourlyRate: teacher.hourlyPriceUSD
+            });
+        }
+    }
+
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching payment details:", error);
+    res.status(500).json({ message: "An unexpected error occurred" });
+  }
+});
+
+app.get("/teacher/payment", async (req, res) => {
+  try {
+    const token = req.query.token; 
+    const decodedToken = jwt.verify(token, "teacherSecretKey");
+    const userId = decodedToken.userId;
+    console.log(userId);
+    const teacher = await Teacher.findOne({ _id: userId }).exec();
+
+    if (!teacher) {
+      return res.status(404).json({ message: "Teacher not found" });
+    }
+
+    const payments = await Payment.find({ teacherId: teacher.email, paymentStatus: 'success' }).exec();
+
+    if (payments.length === 0) {
+      return res.status(404).json({ message: "No successful payments found for this student." });
+    }
+
+    const results = [];
+
+    for (const payment of payments) {
+        const student = await Student.findOne({ username: payment.studentId }).exec();
+        console.log(student);
+        if (student) {
+            results.push({
+                studentName: student.name,
+                amountPaid: payment.paymentAmount,
+                lessonTimeDuration: payment.lessonTimeDuration,
+                lessonDay: payment.lessonDay,
+                lessonType: payment.lessonType,
+                lessonDate: payment.trialLessonDate,
+                lessonTime: payment.lessonTime,
+               profilePhoto: student.profilePhoto, 
+               introduceYourself: student.description,
+                subjectsTaught: teacher.subjectsTaught,
+            });
+        }
+    }
+
+    res.json(results);
+  } catch (error) {
+    console.error("Error fetching payment details:", error);
+    res.status(500).json({ message: "An unexpected error occurred" });
+  }
+});
 
 const  Message  = require('./models/message');
 
@@ -144,8 +240,6 @@ app.use(messageRoutes);
 app.use(conversationRoutes);
 app.use(sendMessageUploadsRouter);
 app.use("/teacher", userRoutes);
-app.use("/teacher", paymentTeacherRoute);
-app.use("/student", paymentRoute);
 app.use("/student", studentRoutes);
 app.use("/student", studentData);
 app.use("/student", studentProfile);
