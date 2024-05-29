@@ -39,7 +39,7 @@ exports.About = async (req, res, next) => {
     }
     catch(error)
     {
-        console.error("Not Inserted Data", error);
+        console.error("Get about error", error);
         return res.status(500).json({ message: "An Unexpected Error Occurred" });
     }
 };
@@ -65,7 +65,7 @@ exports.userData = async (req, res, next) => {
     }
     catch(error)
     {
-        console.error("Not Inserted Data", error);
+        console.error("User Data error");
         return res.status(500).json({ message: "An Unexpected Error Occurred" });
     }
 };
@@ -381,7 +381,7 @@ exports.Description = async (req, res, next) => {
             updatedTeacher,
         });
     } catch (error) {
-        console.error("Not Inserted Data", error);
+        console.error("Description Error", error);
         return res.status(500).json({ message: "An Unexpected Error Occurred" });
     }
 };
@@ -479,7 +479,7 @@ exports.Availability = async (req, res, next) => {
             updatedTeacher,
         });
     } catch (error) {
-        console.error("Not Inserted Data", error);
+        console.error("Availability error", error);
         return res.status(500).json({ message: "An Unexpected Error Occurred" });
     }
 };
@@ -506,7 +506,7 @@ exports.Pricing = async (req, res, next) => {
             updatedTeacher,
         });
     } catch (error) {
-        console.error("Not Inserted Data", error);
+        console.error("Pricing error", error);
         return res.status(500).json({ message: "An Unexpected Error Occurred" });
     }
 };
