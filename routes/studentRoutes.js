@@ -205,7 +205,7 @@ router.post("/payment", async (request, response) => {
     const paymentAmount = request.body.paymentAmount;
     const amountInCents = paymentAmount * 100;
     const { metadata } = request.body;
-    const { studentUsername, teacherEmail, trialLessonDate } = metadata;
+    const { studentUsername, teacherEmail, trialLessonDate,lessonTime,lessonDay } = metadata;
     console.log("in payment route: ",metadata);
 
     // Perform payment processing with Stripe
@@ -230,11 +230,12 @@ router.post("/payment", async (request, response) => {
         studentUsername: metadata.studentUsername,
         teacherEmail: teacherEmail,
         trialLessonDate: trialLessonDate,
+        
       },
     });
 
     // Store payment data in the database with status set to "pending"
-    await Payment.create({
+    await Payment.create({ 
       sessionId: session.id,
       studentId: metadata.StudentUsername,
       teacherId: metadata.teacherEmail,
@@ -242,6 +243,10 @@ router.post("/payment", async (request, response) => {
       paymentMethod: 'card',
       paymentStatus: 'pending',
       trialLessonDate: new Date(metadata.trialLessonDate),
+      lessonDay: lessonDay,
+      lessonTime: lessonTime,
+
+
     });
 
     console.log('Payment save as pending');
