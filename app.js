@@ -2,6 +2,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
+const Student = require("./models/studentSchema");
+const Teacher = require("./models/teacherSchema");
 const loginRoutes = require("./routes/loginRoutes");
 const userRoutes = require("./routes/signUpRoutes");
 const teacherData = require("./routes/teacherRoutes");
@@ -13,6 +15,7 @@ const studentProfile = require('./routes/studentProfile');
 const messageRoutes = require('./routes/messageingRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
 const sendMessageUploadsRouter = require('./routes/sendMessageFile');
+const trialClassRoutes = require('./routes/trialClassRoute');
 const path = require("path");
 const io = require("socket.io")(8000, {
   cors: {
@@ -27,6 +30,7 @@ const app = express();
 
 const Payment = require('./models/paymentSchema');
 const endpointSecret = "whsec_89ce4dfa257aa3400235803ca071c550eb4111ddf8167f99ab24659cc6e4dcd5";
+
 
 app.post('/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
   const sig = request.headers['stripe-signature'];
@@ -88,9 +92,8 @@ app.post('/webhook', express.raw({ type: 'application/json' }), async (request, 
 
 app.use(express.json());
 app.use(cors());
-const Student = require("./models/studentSchema");
-const Teacher = require("./models/teacherSchema");
-app.get("/student/payments", async (req, res) => {
+
+app.get("/students/payments", async (req, res) => {
   try {
     const userEmail = req.query.email; 
     console.log(userEmail);
@@ -139,12 +142,11 @@ app.get("/student/payments", async (req, res) => {
   }
 });
 
-app.get("/teacher/payment", async (req, res) => {
+app.get("/teachers/payments", async (req, res) => {
   try {
     const token = req.query.token; 
     const decodedToken = jwt.verify(token, "teacherSecretKey");
     const userId = decodedToken.userId;
-    console.log(userId);
     const teacher = await Teacher.findOne({ _id: userId }).exec();
 
     if (!teacher) {
@@ -154,16 +156,16 @@ app.get("/teacher/payment", async (req, res) => {
     const payments = await Payment.find({ teacherId: teacher.email, paymentStatus: 'success' }).exec();
 
     if (payments.length === 0) {
-      return res.status(404).json({ message: "No successful payments found for this student." });
+      return res.status(404).json({ message: "No successful payments found for this teacher." });
     }
 
     const results = [];
 
     for (const payment of payments) {
         const student = await Student.findOne({ username: payment.studentId }).exec();
-        console.log(student);
         if (student) {
             results.push({
+                teacherName: teacher.firstName + " " + teacher.lastName,
                 studentName: student.name,
                 amountPaid: payment.paymentAmount,
                 lessonTimeDuration: payment.lessonTimeDuration,
@@ -226,7 +228,7 @@ io.on("connection", (socket) => {
     const { conversationId, senderId, text,type ,date, data } = msgdata;
     const newMessage = new Message({ conversationId, senderId, message:text, type,date,data});
     await newMessage.save();
-  })
+  });
   
 });
 
@@ -238,10 +240,11 @@ db.once("open", () => {
 
 app.use(messageRoutes);
 app.use(conversationRoutes);
+app.use(trialClassRoutes);
 app.use(sendMessageUploadsRouter);
 app.use("/teacher", userRoutes);
 app.use("/student", studentRoutes);
-app.use("/student", studentData);
+app.use(studentData);
 app.use("/student", studentProfile);
 app.use(loginRoutes);
 app.use(teacherData);
@@ -249,6 +252,13 @@ app.use(uploadPhoto);
 app.use("/admin", adminRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/sendMessageUploads", express.static(path.join(__dirname, "sendMessageUploads")));
+
+const notifyStudent = (studentName, classDetails) => {
+  io.emit('notifyStudent', { studentName, classDetails });
+};
+
+// Make notifyStudent function available globally
+app.locals.notifyStudent = notifyStudent;
 mongoose
   .connect(URL)
   .then((result) => {

@@ -3,7 +3,7 @@ const router = express.Router();
 const Student = require("../models/studentSchema");
 
 
-router.get("/user", async (req, res) => {
+router.get("/students/user", async (req, res) => {
   try {
     const userEmail = req.query.email; 
     console.log(userEmail);
