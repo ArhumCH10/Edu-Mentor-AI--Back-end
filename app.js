@@ -16,6 +16,8 @@ const messageRoutes = require('./routes/messageingRoutes');
 const conversationRoutes = require('./routes/conversationRoutes');
 const sendMessageUploadsRouter = require('./routes/sendMessageFile');
 const trialClassRoutes = require('./routes/trialClassRoute');
+const ConfirmLessonRoute = require('./routes/ConfirmLessonRoute');
+const updateAvailabilityRoute = require('./routes/updateAvailabilityRoute');
 const path = require("path");
 const io = require("socket.io")(8000, {
   cors: {
@@ -242,6 +244,8 @@ app.use(messageRoutes);
 app.use(conversationRoutes);
 app.use(trialClassRoutes);
 app.use(sendMessageUploadsRouter);
+app.use(ConfirmLessonRoute);
+app.use(updateAvailabilityRoute);
 app.use("/teacher", userRoutes);
 app.use("/student", studentRoutes);
 app.use(studentData);
