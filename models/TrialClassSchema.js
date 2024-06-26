@@ -5,6 +5,7 @@ const TrialClassSchema = new mongoose.Schema({
   meetContent: { type: String, required: true },
   studentName: { type: String, required: true },
   teacherName: { type: String, required: true },
+  teacherId: { type: String, ref: 'Teacher', required: true },
   lessonTime: { type: String, required: true },
   lessonTimeDuration: { type: Number, required: true },
   status: { type: Boolean, default: false },

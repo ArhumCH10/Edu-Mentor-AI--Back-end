@@ -1,15 +1,26 @@
-const TrialClass = require('../models/TrialClassSchema');
+const TrialClass  = require('../models/TrialClassSchema');
+const Teacher  = require('../models/teacherSchema');
 
 const createTrialClass = async (req, res) => {
+ 
   try {
-    const newTrialClass = new TrialClass(req.body);
-    console.log(newTrialClass);
+    const {lessonDetails,quizOutline} = req.body;
+    const newTrialClass = new TrialClass(lessonDetails);
     await newTrialClass.save();
 
+    const teacher = await Teacher.findById(newTrialClass.teacherId).select('profilePhoto');
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+    const updatedTrialClass = {
+      ...newTrialClass.toObject(),
+      teacherProfilePic: teacher.profilePhoto || './default-user.jpg',
+      quizOutline,
+    };
     const notifyStudent = req.app.locals.notifyStudent;
-    notifyStudent(newTrialClass.studentName, newTrialClass);
+    notifyStudent(newTrialClass.studentName, updatedTrialClass);
 
-    res.status(201).json(newTrialClass);
+    res.status(201).json(TrialClass);
   } catch (error) {
     res.status(500).json({ message: 'Error saving trial class', error });
   }
