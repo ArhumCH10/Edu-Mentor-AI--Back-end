@@ -18,6 +18,7 @@ const sendMessageUploadsRouter = require('./routes/sendMessageFile');
 const trialClassRoutes = require('./routes/trialClassRoute');
 const ConfirmLessonRoute = require('./routes/ConfirmLessonRoute');
 const updateAvailabilityRoute = require('./routes/updateAvailabilityRoute');
+const CustomOfferRoute = require('./routes/CustomOffer')
 const path = require("path");
 const io = require("socket.io")(8000, {
   cors: {
@@ -241,6 +242,7 @@ db.once("open", () => {
 });
 
 app.use(messageRoutes);
+app.use(CustomOfferRoute);
 app.use(conversationRoutes);
 app.use(trialClassRoutes);
 app.use(sendMessageUploadsRouter);
