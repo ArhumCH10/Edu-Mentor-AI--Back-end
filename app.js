@@ -335,6 +335,7 @@ db.once("open", () => {
 });
 
 app.use(messageRoutes);
+app.use(CustomOfferRoute);
 app.use(conversationRoutes);
 app.use(trialClassRoutes);
 app.use(sendMessageUploadsRouter);
