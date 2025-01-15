@@ -18,6 +18,7 @@ const sendMessageUploadsRouter = require("./routes/sendMessageFile");
 const trialClassRoutes = require("./routes/trialClassRoute");
 const ConfirmLessonRoute = require("./routes/ConfirmLessonRoute");
 const updateAvailabilityRoute = require("./routes/updateAvailabilityRoute");
+const CustomOfferRoute = require('./routes/CustomOffer');
 
 const reviewSchema = new mongoose.Schema({
   review: { type: String, required: true },
@@ -27,10 +28,19 @@ const reviewSchema = new mongoose.Schema({
 const Review = mongoose.model("Review", reviewSchema);
 
 const path = require("path");
-const io = require("socket.io")(8000, {
+// Update Socket.IO server configuration
+const httpServer = require('http').createServer();
+const io = require("socket.io")(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
+    methods: ["GET", "POST"],
+    credentials: true,
+    allowedHeaders: ["my-custom-header"],
   },
+  allowEIO3: true,
+  transports: ['websocket', 'polling'], // Allow both transports
+  pingTimeout: 60000,
+  pingInterval: 25000,
 });
 const stripe = require("stripe")(
   "sk_test_51Obp44KAlnAzxnFU9PrEBv0K27IsOThelFXmUSTkJk7nhzQ0V20hHm75bDPLsYnPnwWs52TIzmz61rUn1U3uQxH500Ob1C6BIw"
@@ -229,72 +239,141 @@ const Message = require("./models/message");
 
 let connectedClients = [];
 
-io.on("connection", (socket) => {
-  // Store user information when a client connects
+const rooms = new Map();
+
+io.on('connection', (socket) => {
+  console.log('🟢 New socket connection:', socket.id);
+
   socket.on("addUser", (userId) => {
+    console.log('👤 addUser attempt:', { userId, socketId: socket.id });
     const isUserExist = connectedClients.find((user) => user.userId === userId);
     if (!isUserExist) {
-      console.log("New client connected:", socket.id);
-
+      console.log("✅ New client connected:", socket.id);
       const user = { userId: userId, socketId: socket.id };
       connectedClients.push(user);
-      io.emit("getUser", connectedClients);
-    } else {
-      console.log("user Exists alredy");
-    }
-  });
-  socket.on("disconnect", () => {
-    //connectedClients = connectedClients.filter((user) => user.socketId !== socket?.id);  crashed
-    const index = connectedClients.findIndex(
-      (user) => user.socketId === socket?.id
-    );
-    if (index !== -1) {
-      connectedClients.splice(index, 1);
+      console.log('📊 Current connected clients:', connectedClients);
       io.emit("getUser", connectedClients);
     }
-    io.emit("getUser", connectedClients);
   });
 
+  socket.on('joinRoom', ({ roomId, userId, userRole, userName }) => {
+    // Leave all other rooms first
+    socket.rooms.forEach(room => {
+      if (room !== socket.id) {
+        socket.leave(room);
+      }
+    });
+
+    socket.join(roomId);
+    console.log(`🚪 ${userRole} ${userName} joined room: ${roomId}`);
+    
+    if (!rooms.has(roomId)) {
+      rooms.set(roomId, {
+        teacherPresent: false,
+        teacherInCall: false,
+        students: new Set(),
+        teacherSocketId: null
+      });
+    }
+
+    const room = rooms.get(roomId);
+    
+    if (userRole === 'teacher') {
+      room.teacherPresent = true;
+      room.teacherSocketId = socket.id;
+      io.to(roomId).emit('teacherPresent', true);
+      console.log(`👨‍🏫 Teacher ${userName} joined room: ${roomId}`);
+    } else {
+      room.students.add(socket.id);
+      socket.emit('teacherPresent', room.teacherPresent);
+      console.log(`👨‍🎓 Student ${userName} joined room: ${roomId}`);
+    }
+  });
+
+  // WebRTC signaling events
+  socket.on("offer", ({ offer, roomId, from }) => {
+    console.log(`📤 Received offer from ${from} in room ${roomId}`);
+    io.in(roomId).emit("offer", { offer, from });
+  });
+  
+  socket.on('answer', ({ answer, roomId, from }) => {
+    console.log(`📤 Received answer from ${from} in room ${roomId}`);
+    io.in(roomId).emit('answer', { answer, from });
+  });
+  
+  socket.on("ice-candidate", ({ candidate, roomId, from }) => {
+    console.log(`📤 Received ICE candidate from ${from} in room ${roomId}`);
+    io.in(roomId).emit("ice-candidate", { candidate, from });
+  });
+
+  socket.on("studentJoining", ({ roomId }) => {
+    console.log(`👨‍🎓 Student joining call in room ${roomId}`);
+    socket.to(roomId).emit("studentJoining", { roomId });
+  });
+
+  socket.on('teacherJoining', ({ roomId }) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      room.teacherPresent = true;
+      io.to(roomId).emit('teacherPresent', true);
+      console.log(`👨‍🏫 Teacher joining status updated for room: ${roomId}`);
+    }
+  });
+
+  socket.on('teacherStartedCall', ({ roomId }) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      room.teacherInCall = true;
+      room.teacherPresent = true;
+      io.to(roomId).emit('teacherStartedCall');
+      io.to(roomId).emit('teacherPresent', true);
+      console.log(`👨‍🏫 Teacher started call in room: ${roomId}`);
+    }
+  });
+
+  socket.on('checkTeacherPresence', ({ roomId }) => {
+    const room = rooms.get(roomId);
+    if (room) {
+      socket.emit('teacherPresent', room.teacherPresent);
+      console.log(`ℹ️ Teacher presence check for room ${roomId}: ${room.teacherPresent}`);
+    }
+  });
+
+  // Message handling
   socket.on("sendMessage", async (msgdata) => {
+    console.log('💬 Message send attempt:', msgdata);
     const reciever = connectedClients.find(
       (user) => user.userId === msgdata.recieverId
     );
-    console.log("data", msgdata);
-    console.log("reciever find in connected clients: ", reciever);
     if (reciever) {
       io.to(reciever.socketId).emit("getMessage", msgdata);
     }
     io.to(socket.id).emit("sendItself", msgdata);
-    const { conversationId, senderId, text, type, date, data } = msgdata;
-    const newMessage = new Message({
-      conversationId,
-      senderId,
-      message: text,
-      type,
-      date,
-      data,
-    });
-    await newMessage.save();
-  });
-
-  socket.on("joinRoom", ({ roomId }) => {
-    socket.join(roomId);
-  });
-
-  socket.on("offer", (data) => {
-    socket.to(data.roomId).emit("offer", data.offer);
-  });
-
-  socket.on("answer", (data) => {
-    socket.to(data.roomId).emit("answer", data.answer);
-  });
-
-  socket.on("ice-candidate", (data) => {
-    socket.to(data.roomId).emit("ice-candidate", data.candidate);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected");
+    console.log('🔴 Socket disconnected:', socket.id);
+    
+    // Handle messaging clients
+    const index = connectedClients.findIndex((user) => user.socketId === socket?.id);
+    if (index !== -1) {
+      connectedClients.splice(index, 1);
+      io.emit("getUser", connectedClients);
+    }
+
+    // Handle room cleanup
+    rooms.forEach((room, roomId) => {
+      if (room.teacherSocketId === socket.id) {
+        room.teacherPresent = false;
+        room.teacherInCall = false;
+        io.to(roomId).emit('teacherPresent', false);
+        console.log(`👋 Teacher left room: ${roomId}`);
+      }
+      if (room.students.has(socket.id)) {
+        room.students.delete(socket.id);
+        console.log(`👋 Student left room: ${roomId}`);
+      }
+    });
   });
 });
 
@@ -363,8 +442,16 @@ const notifyStudent = (studentName, classDetails) => {
 app.locals.notifyStudent = notifyStudent;
 mongoose
   .connect(URL)
-  .then((result) => {
-    app.listen(8080);
+  .then(() => {
+    // Start Express server
+    app.listen(8080, () => {
+      console.log('Express server running on port 8080');
+    });
+    
+    // Start Socket.IO server
+    httpServer.listen(8000, () => {
+      console.log('Socket.IO server running on port 8000');
+    });
   })
   .catch((err) => {
     console.log(err);
